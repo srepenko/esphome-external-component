@@ -14,6 +14,15 @@ void NiceBusT4::setup() {
     if (this->rx_pin_ != nullptr && this->rx_pin_->is_inverted())
      invert |= UART_SIGNAL_RXD_INV;
     uart_set_line_inverse(this->uart_num_, invert);
+
+
+    uint32_t baudrate;
+    uint8_t master_tx_buf[2];
+    master_tx_buf[0] = 0x55; // sync byte
+    master_tx_buf[1] = 0x77;
+    uint8_t dummy = 0;
+    uart_flush_input(this->uart_num_);
+
 }
 
 void NiceBusT4::loop() {
