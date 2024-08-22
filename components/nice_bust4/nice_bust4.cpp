@@ -22,7 +22,9 @@ void NiceBusT4::setup() {
     master_tx_buf[1] = 0x77;
     uint8_t dummy = 0;
     uart_flush_input(this->uart_num_);
-
+    uart_get_baudrate(this->uart_num_, &baudrate);
+#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
+    uart_set_baudrate(this->uart_num_, LIN_BREAK_BAUDRATE(baudrate));
 }
 
 void NiceBusT4::loop() {
