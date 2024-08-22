@@ -1,5 +1,3 @@
-#pragma once
-
 #include "esphome/core/log.h"
 #include "nice_bust4.h"
 
