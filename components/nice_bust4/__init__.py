@@ -3,7 +3,7 @@ import esphome.config_validation as cv
 from esphome.components import uart
 from esphome.const import CONF_ID
 
-#DEPENDENCIES = ["uart"]
+DEPENDENCIES = ["uart"]
 
 nice_bust4_ns = cg.esphome_ns.namespace("nice_bust4")
 NiceBusT4 = nice_bust4_ns.class_(
