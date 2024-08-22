@@ -13,7 +13,7 @@ void NiceBusT4::setup() {
      invert |= UART_SIGNAL_TXD_INV;
     if (this->rx_pin_ != nullptr && this->rx_pin_->is_inverted())
      invert |= UART_SIGNAL_RXD_INV;
-    this->uart_set_line_inverse(this->uart_num_, invert);
+    uart_set_line_inverse(this->uart_num_, invert);
 }
 
 void NiceBusT4::loop() {
