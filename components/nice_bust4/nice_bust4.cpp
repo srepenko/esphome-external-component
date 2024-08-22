@@ -1,5 +1,6 @@
 #include "esphome/core/log.h"
 #include "nice_bust4.h"
+#include "esphome/components/uart/uart_component_esp_idf.h"
 
 namespace esphome {
 namespace nice_bust4 {
