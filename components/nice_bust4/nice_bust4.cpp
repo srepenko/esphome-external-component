@@ -37,7 +37,7 @@ void NiceBusT4::loop() {
         // invert |= UART_SIGNAL_RXD_INV;
         //uart_set_line_inverse(this->uart_num_, invert);
 
-/*
+
         uint32_t baudrate;
         uint8_t master_tx_buf[] = {0x55, 0x0D, 0xF0, 0xFF, 0x00, 0x66, 0x08, 0x06, 0x97, 0x00, 0x04, 0x99, 0x00, 0x00, 0x9D, 0x0D};
     //    master_tx_buf[0] = 0x55; // sync byte
@@ -54,7 +54,7 @@ void NiceBusT4::loop() {
         uart_write_bytes(lin_uart_num, (char *)master_tx_buf, sizeof(master_tx_buf));
         this->last_update = millis();
         ESP_LOGCONFIG(TAG, "Send");
-        */
+        
     }
 
 }
