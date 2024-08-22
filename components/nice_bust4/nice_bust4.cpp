@@ -43,8 +43,7 @@ void NiceBusT4::loop() {
         uint8_t lin_uart_num = this->uart_num_;
         uart_flush_input(lin_uart_num);
         uart_get_baudrate(lin_uart_num, &baudrate);
-        //uart_set_baudrate(lin_uart_num, LIN_BREAK_BAUDRATE(baudrate));
-        uart_set_baudrate(lin_uart_num, 14400);
+        uart_set_baudrate(lin_uart_num, LIN_BREAK_BAUDRATE(baudrate));
         uart_write_bytes(lin_uart_num, (char *)&dummy, 1);              // send a zero byte.  This call must be blocking.
         uart_wait_tx_done(lin_uart_num, 2);                             // shouldn't be necessary??
         uart_wait_tx_done(lin_uart_num, 2);                             // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
