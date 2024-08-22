@@ -21,10 +21,11 @@ void NiceBusT4::setup() {
     master_tx_buf[0] = 0x55; // sync byte
     master_tx_buf[1] = 0x77;
     uint8_t dummy = 0;
-    uart_flush_input(this->uart_num_);
-    uart_get_baudrate(this->uart_num_, &baudrate);
+    uint8_t lin_uart_num = this->uart_num_;
+    uart_flush_input(lin_uart_num);
+    uart_get_baudrate(lin_uart_num, &baudrate);
 #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
-    uart_set_baudrate(this->uart_num_, LIN_BREAK_BAUDRATE(baudrate));
+    uart_set_baudrate(lin_uart_num, LIN_BREAK_BAUDRATE(baudrate));
     uart_write_bytes(lin_uart_num, (char *)&dummy, 1); // send a zero byte.  This call must be blocking.
     uart_wait_tx_done(lin_uart_num, 2);                // shouldn't be necessary??
     uart_wait_tx_done(lin_uart_num, 2);                // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
