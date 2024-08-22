@@ -1,7 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/uart/uart.h"
+//#include "esphome/components/uart/uart.h"
 #include "esphome/components/uart/uart_component_esp_idf.h"
 
 namespace esphome {
