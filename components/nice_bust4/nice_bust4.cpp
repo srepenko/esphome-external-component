@@ -39,7 +39,8 @@ void NiceBusT4::loop() {
     ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
     if (length > 0) {
         length = uart_read_bytes(this->uart_num_, data, length, 100);
-        ESP_LOGCONFIG(TAG, "%02X", length);
+        //"%02X"
+        ESP_LOGCONFIG(TAG, "%d", length);
     }
     
 
