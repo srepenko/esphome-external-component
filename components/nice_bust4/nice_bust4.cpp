@@ -37,7 +37,7 @@ void NiceBusT4::loop() {
 
     while (this->IDFUARTComponent::available() > 0) {
         uint8_t c;
-        uart_read_bytes(this->uart_num_, c, 1);
+        this->IDFUARTComponent::peek_byte(this->uart_num_, c, 1);
         ESP_LOGCONFIG(TAG, "%02X", c);
     } //while
 
