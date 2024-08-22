@@ -35,8 +35,9 @@ void NiceBusT4::setup() {
 
 void NiceBusT4::loop() {
 
-    while (uart_rx_available(this->uart_num_) > 0) {
-        uint8_t c = (uint8_t)uart_read_char(this->uart_num_);
+    while (this->available() > 0) {
+        uint8_t c;
+        this->peek_byte(c);
         ESP_LOGCONFIG(TAG, "%02X", c);
     } //while
 
