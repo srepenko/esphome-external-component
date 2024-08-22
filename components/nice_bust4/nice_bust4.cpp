@@ -37,7 +37,7 @@ void NiceBusT4::loop() {
 
     while (this->IDFUARTComponent::available() > 0) {
         uint8_t c;
-        this->IDFUARTComponent::peek_byte(this->uart_num_, c, 1);
+        this->IDFUARTComponent::peek_byte(c);
         ESP_LOGCONFIG(TAG, "%02X", c);
     } //while
 
