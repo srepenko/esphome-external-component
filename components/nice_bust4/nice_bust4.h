@@ -2,6 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
+#include <uart_component_esp_idf.h>
 
 namespace esphome {
 namespace nice_bust4 {
