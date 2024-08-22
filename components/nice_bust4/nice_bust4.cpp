@@ -49,7 +49,7 @@ void NiceBusT4::loop() {
         uart_wait_tx_done(lin_uart_num, 2);                             // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
         uart_set_baudrate(lin_uart_num, baudrate);                      // set baudrate back to normal after break is sent
         uart_write_bytes(lin_uart_num, (char *)master_tx_buf, sizeof(master_tx_buf));
-        
+        this->last_update = millis();
     }
 
 }
