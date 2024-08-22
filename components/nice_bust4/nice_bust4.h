@@ -7,7 +7,7 @@
 namespace esphome {
 namespace nice_bust4 {
 //#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
-#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 10)
+#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 15)
 //class NiceBusT4 : public Component, public uart::UARTDevice{
 class NiceBusT4 : public uart::IDFUARTComponent{
   public:
