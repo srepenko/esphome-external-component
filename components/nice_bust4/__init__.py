@@ -14,7 +14,7 @@ NiceBusT4 = nice_bust4_ns.class_(
 CONFIG_SCHEMA = (
     cv.Schema({cv.GenerateID(): cv.declare_id(NiceBusT4)})
     .extend(cv.COMPONENT_SCHEMA)
-    .extend(uart.UART_IDFUARTCOMPONENT_SCHEMA)
+    .extend(uart.UART_COMPONENT_SCHEMA)
 )
 
 
