@@ -18,7 +18,7 @@ void NiceBusT4::loop() {
         length = uart_read_bytes(this->uart_num_, data, length, 100);
         //"%02X"
         //ESP_LOGCONFIG(TAG, "%d", length);
-        std::string pretty_cmd1 = format_hex_pretty(data);
+        std::string pretty_cmd1 = format_hex_pretty(data, length);
         ESP_LOGD(TAG,  "Получен пакет: %S ", pretty_cmd1.c_str() );
     }
     
