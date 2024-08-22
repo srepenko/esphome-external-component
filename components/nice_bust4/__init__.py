@@ -7,14 +7,13 @@ DEPENDENCIES = ["uart"]
 
 nice_bust4_ns = cg.esphome_ns.namespace("nice_bust4")
 NiceBusT4 = nice_bust4_ns.class_(
-    "NiceBusT4", cg.Component, uart.UARTDevice, uart.IDFUARTComponent
-#    "NiceBusT4", uart.IDFUARTComponent
+    "NiceBusT4", cg.Component, uart.UARTDevice
 )
 
 CONFIG_SCHEMA = (
     cv.Schema({cv.GenerateID(): cv.declare_id(NiceBusT4)})
     .extend(cv.COMPONENT_SCHEMA)
-    .extend(uart.UART_COMPONENT_SCHEMA)
+    .extend(uart.UART_DEVICE_SCHEMA)
 )
 
 
