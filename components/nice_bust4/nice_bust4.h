@@ -6,7 +6,7 @@
 
 namespace esphome {
 namespace nice_bust4 {
-
+//class NiceBusT4 : public uart::UARTDevice, public uart::IDFUARTComponent{
 class NiceBusT4 : public uart::IDFUARTComponent{
   public:
     void setup() override;
