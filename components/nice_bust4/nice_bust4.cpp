@@ -17,9 +17,9 @@ void NiceBusT4::setup() {
 
 
     uint32_t baudrate;
-    uint8_t master_tx_buf[2];
-    master_tx_buf[0] = 0x55; // sync byte
-    master_tx_buf[1] = 0x77;
+    uint8_t master_tx_buf[] = 0x55, 0x0D, 0x00, 0xFF, 0x00, 0x66, 0x08, 0x06, 0x97, 0x00, 0x04, 0x99, 0x00, 0x00, 0x9D, 0x0D;
+//    master_tx_buf[0] = 0x55; // sync byte
+//    master_tx_buf[1] = 0x77;
     uint8_t dummy = 0;
     uint8_t lin_uart_num = this->uart_num_;
     uart_flush_input(lin_uart_num);
