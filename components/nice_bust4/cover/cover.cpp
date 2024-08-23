@@ -25,7 +25,7 @@ void NiceBusT4Cover::control(const CoverCall &call) {
     this->parent_->gen_inf_cmd_(FOR_CU, INF_STATUS, GET);   //Состояние ворот (Открыто/Закрыто/Остановлено)
   
     if (this->parent_->is_walky) {
-      this->parent_->gen_inf_cmd_((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), FOR_CU, CUR_POS, GET, 0x00, {0x01}, 1);  // запрос текущей позиции для энкодера
+      this->parent_->gen_inf_cmd_(FOR_CU, CUR_POS, GET, 0x00, {0x01}, 1);  // запрос текущей позиции для энкодера
     }
     else {
       this->parent_->gen_inf_cmd(FOR_CU, CUR_POS, GET);    // запрос условного текущего положения привода
