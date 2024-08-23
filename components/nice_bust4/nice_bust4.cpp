@@ -11,10 +11,10 @@ void NiceBusT4::setup() {
 }
 
 void NiceBusT4::loop() {
-    /*
     uint8_t data[128];
     int length = 0;
-    ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
+    ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_->uart_num_, (size_t*)&length));
+/*
     if (length > 0) {
         length = uart_read_bytes(this->uart_num_, data, length, 100);
         //"%02X"
