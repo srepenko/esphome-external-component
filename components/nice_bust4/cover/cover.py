@@ -3,6 +3,8 @@ import esphome.config_validation as cv
 from esphome.components import cover
 from esphome.const import CONF_ADDRESS, CONF_ID, CONF_UPDATE_INTERVAL, CONF_USE_ADDRESS
 
+DEPENDENCIES = ["nice_bust4"]
+
 from .. import CONF_NICEBUST4_ID, NICEBUST4_COMPONENT_SCHEMA, nice_bust4_ns
 
 Nice = nice_bust4_ns.class_('NiceBusT4', cover.Cover, cg.Component)
