@@ -8,14 +8,11 @@ CONFIG_SCHEMA = cover.COVER_SCHEMA.extend({
     cv.Optional(CONF_ADDRESS): cv.hex_uint16_t,
     cv.Optional(CONF_USE_ADDRESS): cv.hex_uint16_t,
 #    cv.Optional(CONF_UPDATE_INTERVAL): cv.positive_time_period_milliseconds,
-    cv.Optional(CONF_RX_PIN): cv.uint8_t,
-    cv.Optional(CONF_TX_PIN): cv.uint8_t,
-}).extend(cv.COMPONENT_SCHEMA)#.extend(uart.UART_DEVICE_SCHEMA)
+}).extend(cv.COMPONENT_SCHEMA)
 
 def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     yield cg.register_component(var, config)
-    #yield uart.register_uart_device(var, config)
 
     yield cover.register_cover(var, config)
 
