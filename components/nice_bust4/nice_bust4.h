@@ -324,8 +324,8 @@ class NiceBusT4 : public uart::IDFUARTComponent{
 
 
     void gen_control_cmd_(const uint8_t control_cmd){
-        tx_buffer_.push(gen_control_cmd(control_cmd))
-    };
+        return tx_buffer_.push(gen_control_cmd(control_cmd))
+    }
   protected:
 //    void send_command_(const uint8_t *data, uint8_t len);
 
@@ -357,7 +357,7 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     std::vector<uint8_t> gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, const std::vector<uint8_t> &data, size_t len);	 // все поля
     std::vector<uint8_t> gen_inf_cmd(const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd) {return gen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, 0x00, {0x00}, 0 );} // для команд без данных
     std::vector<uint8_t> gen_inf_cmd(const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, std::vector<uint8_t> data){
-	    return gen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, next_data, data, data.size());} // для команд c данными
+	    return control_cmdgen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, next_data, data, data.size());} // для команд c данными
     std::vector<uint8_t> gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data){
 	    return gen_inf_cmd(to_addr1, to_addr2, whose, inf_cmd, run_cmd, next_data, {0x00}, 0);} // для команд с адресом и без данных 	
 
