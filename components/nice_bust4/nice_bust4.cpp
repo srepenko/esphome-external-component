@@ -71,7 +71,7 @@ void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
   uint8_t dummy = 0x00;
   uart_flush_input(this->uart_num_);
   uart_get_baudrate(this->uart_num_, &baudrate);
-  #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 18)
+  #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
   uart_set_baudrate(this->uart_num_, LIN_BREAK_BAUDRATE(baudrate));
   uart_write_bytes(this->uart_num_, (char *)&dummy, 1);              // send a zero byte.  This call must be blocking.
   uart_wait_tx_done(this->uart_num_, 2);                             // shouldn't be necessary??
