@@ -8,10 +8,11 @@ namespace nice_bust4 {
 static const char *TAG = "nice_bust4.component";
 
 void NiceBusT4::setup() {
-    this->uart_num_ = this->uart_.get_hw_serial_number();
+
 }
 
 void NiceBusT4::loop() {
+    
     uint8_t data[128];
     int length = 0;
     
@@ -66,6 +67,9 @@ void NiceBusT4::loop() {
 void NiceBusT4::dump_config(){
     ESP_LOGCONFIG(TAG, "NiceBusT4");
 }
+
+
+
 
 }  // namespace nice_bust4
 }  // namespace esphome
