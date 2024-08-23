@@ -17,6 +17,7 @@ CoverTraits NiceBusT4Cover::get_traits() {
 }
 
 void NiceBusT4Cover::control(const CoverCall &call) {
+  /*
   if (call.get_stop()) {
     // uint8_t data[2] = {CONTROL, STOP};
     this->tx_buffer_.push(gen_control_cmd(STOP));
@@ -38,12 +39,13 @@ void NiceBusT4Cover::control(const CoverCall &call) {
       } else if (pos == COVER_CLOSED) {
         this->tx_buffer_.push(gen_control_cmd(CLOSE));
 
-      } /*else {
-          uint8_t data[3] = {CONTROL, SET_POSITION, (uint8_t)(pos * 100)};
-          this->send_command_(data, 3);
-        }*/
+      } //else {
+        //  uint8_t data[3] = {CONTROL, SET_POSITION, (uint8_t)(pos * 100)};
+        //  this->send_command_(data, 3);
+        //}
     }
   }
+  */
 }
 
 void NiceBusT4Cover::setup() {
