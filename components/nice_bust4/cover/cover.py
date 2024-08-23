@@ -9,12 +9,6 @@ from .. import CONF_NICEBUST4_ID, NICEBUST4_SCHEMA, nice_bust4_ns
 
 NiceBusT4Cover = nice_bust4_ns.class_('NiceBusT4Cover', cover.Cover, cg.Component)
 
-NICE_COVER_SCHEMA  = cover.COVER_SCHEMA.extend({
-    cv.GenerateID(): cv.declare_id(NiceBusT4Cover),
-    cv.Optional(CONF_ADDRESS): cv.hex_uint16_t,
-    cv.Optional(CONF_USE_ADDRESS): cv.hex_uint16_t,
-    cv.Optional(CONF_UPDATE_INTERVAL): cv.positive_time_period_milliseconds,
-}).extend(cv.COMPONENT_SCHEMA)
 
 CONFIG_SCHEMA = NICEBUST4_SCHEMA.extend({
     cover.COVER_SCHEMA.extend({
