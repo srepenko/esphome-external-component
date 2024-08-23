@@ -24,7 +24,7 @@ void NiceBusT4::loop() {
         std::string pretty_cmd1 = format_hex_pretty(data, length);
         ESP_LOGI(TAG,  "Входящие данные: %S ", pretty_cmd1.c_str() );
         for (int i=0; i< length; ++i) {
-            //this->handle_char_(data[i]);
+            this->handle_char_(data[i]);
             this->last_uart_byte_ = now;
         }
         return;
