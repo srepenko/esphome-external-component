@@ -79,7 +79,7 @@ void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
   uart_set_baudrate(this->uart_num_, baudrate);                      // set baudrate back to normal after break is sent
   uart_write_bytes(this->uart_num_, data, len);
   std::string pretty_cmd = format_hex_pretty((uint8_t*)&data[0], len);                    // для вывода команды в лог
-  ESP_LOGI(TAG,  "Отправлено: %S ", pretty_cmd.c_str() );
+  ESP_LOGI(TAG,  "Отправлено:     %S ", pretty_cmd.c_str() );
   
 }
 
