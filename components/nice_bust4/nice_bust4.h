@@ -324,9 +324,9 @@ class NiceBusT4 : public uart::IDFUARTComponent{
 
 
     void gen_control_cmd_(const uint8_t control_cmd){return tx_buffer_.push(gen_control_cmd(control_cmd));}
-    void gen_inf_cmd_(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, 
+    void gen_inf_cmd_(const uint8_t whose, const uint8_t inf_cmd, 
       const uint8_t run_cmd, const uint8_t next_data, const std::vector<uint8_t> &data, size_t len){
-      return tx_buffer_.push(gen_inf_cmd(to_addr1, to_addr2, whose, inf_cmd, run_cmd, next_data, data, len));}
+      return tx_buffer_.push(gen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, next_data, data, len));}
     void gen_inf_cmd_(const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd){return tx_buffer_.push(gen_inf_cmd(whose, inf_cmd, run_cmd));}
 
 //    void gen_inf_cmd_((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, next_data, data, data.size()){
