@@ -12,7 +12,7 @@ CONF_NICEBUST4_ID = "nice_bust4_id"
 nice_bust4_ns = cg.esphome_ns.namespace("nice_bust4")
 NiceBusT4 = nice_bust4_ns.class_("NiceBusT4", cg.Component, uart.UARTDevice)
 
-NICEBUST4_COMPONENT_SCHEMA = cv.Schema(
+NICEBUST4_SCHEMA = cv.Schema(
     {
         cv.Required(CONF_NICEBUST4_ID): cv.use_id(NiceBusT4),
     }
