@@ -375,10 +375,6 @@ class NiceBusT4Cover : public Component, public Cover{
     bool init_ok = false; //  определение привода при включении
     bool is_walky = false; // для walky отличается команда запроса положения
 		
-    void setup() override;
-    void loop() override;
-    void dump_config() override; // для вывода в лог информации об оборудовнии
-
     void send_raw_cmd(std::string data);
     void send_cmd(uint8_t data) {this->tx_buffer_.push(gen_control_cmd(data));}	
     void send_inf_cmd(std::string to_addr, std::string whose, std::string command, std::string type_command,  std::string next_data, bool data_on, std::string data_command); // длинная команда
@@ -400,6 +396,10 @@ class NiceBusT4Cover : public Component, public Cover{
     }*/
 
     cover::CoverTraits get_traits() override;
+
+    void setup() override;
+    void loop() override;
+    void dump_config() override; // для вывода в лог информации об оборудовнии
 
   protected:
     void control(const cover::CoverCall &call) override;
