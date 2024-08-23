@@ -88,7 +88,7 @@ void NiceBusT4Cover::loop() {
     this->ready_to_tx_ = true;
     this->last_uart_byte_ = now;
   }
-
+/*
   uint8_t data[128];
   int length = 0;
   ESP_ERROR_CHECK(uart_get_buffered_data_len(this->parent_->uart_num_, (size_t*)&length));
@@ -102,7 +102,7 @@ void NiceBusT4Cover::loop() {
     }
     return;
   }
-  
+  */
   if (this->ready_to_tx_) {   // если можно отправлять
       if (!this->tx_buffer_.empty()) {  // если есть что отправлять
         this->send_array_cmd(this->tx_buffer_.front()); // отправляем первую команду в очереди
@@ -890,6 +890,7 @@ void NiceBusT4Cover::send_array_cmd (std::vector<uint8_t> data) {          // о
 }
 void NiceBusT4Cover::send_array_cmd (const uint8_t *data, size_t len) {
   // отправка данных в uart
+  /*
   uint8_t dummy = 0x00;
   uart_flush_input(this->parent_->uart_num_);
   uart_get_baudrate(this->parent_->uart_num_, &baudrate);
@@ -902,6 +903,7 @@ void NiceBusT4Cover::send_array_cmd (const uint8_t *data, size_t len) {
   uart_write_bytes(this->parent_->uart_num_, data, len);
   std::string pretty_cmd = format_hex_pretty((uint8_t*)&data[0], len);                    // для вывода команды в лог
   ESP_LOGI(TAG,  "Отправлено: %S ", pretty_cmd.c_str() );
+  */
 }
 
 
