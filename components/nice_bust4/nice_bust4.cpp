@@ -14,7 +14,7 @@ void NiceBusT4::setup() {
 void NiceBusT4::loop() {
     uint8_t data[128];
     int length = 0;
-    this->uart_num_ = get_hw_serial_number();
+    this->uart_num_ = uart::IDFUARTComponent->get_hw_serial_number();
     //ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_->uart_num_, (size_t*)&length));
 /*
     if (length > 0) {
