@@ -1,7 +1,7 @@
 #include "cover.h"
 #include "esphome/core/log.h"
 #include "esphome/core/helpers.h"  // для использования вспомогательных функция работ со строками
-//#include "esphome/components/uart/uart.h"
+#include "esphome/components/uart/uart.h"
 
 namespace esphome {
 namespace bus_t4 {
