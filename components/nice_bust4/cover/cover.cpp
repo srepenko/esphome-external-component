@@ -10,7 +10,7 @@ static const char *TAG = "NiceBusT4Cover";
 
 using namespace esphome::cover;
 
-CoverTraits NiceBusT4::get_traits() {
+CoverTraits NiceBusT4Cover::get_traits() {
   auto traits = CoverTraits();
   traits.set_supports_position(true);
   traits.set_supports_stop(true);
@@ -31,7 +31,7 @@ CoverTraits NiceBusT4::get_traits() {
 
 */
 
-void NiceBusT4::control(const CoverCall &call) {
+void NiceBusT4Cover::control(const CoverCall &call) {
   if (call.get_stop()) {
     // uint8_t data[2] = {CONTROL, STOP};
     this->tx_buffer_.push(gen_control_cmd(STOP));
@@ -61,7 +61,7 @@ void NiceBusT4::control(const CoverCall &call) {
   }
 }
 
-void NiceBusT4::setup() {
+void NiceBusT4Cover::setup() {
 //  delay (5000);   // пока привод не стартанёт, на команды отвечать не будет
   //_uart =  uart_init(_UART_NO, BAUD_WORK, SERIAL_8N1, SERIAL_FULL, TX_P, 256, false);
   // unsigned long baud, uint32_t config = SERIAL_8N1, int8_t rxPin = -1, int8_t txPin = -1, bool invert = false, unsigned long timeout_ms = 20000UL,
@@ -75,7 +75,7 @@ void NiceBusT4::setup() {
 
 }
 
-void NiceBusT4::loop() {
+void NiceBusT4Cover::loop() {
 
     if ((millis() - this->last_update_) > 5000) {    // каждые 10 секунд   
 // если привод не определился с первого раза, попробуем позже
@@ -120,7 +120,7 @@ void NiceBusT4::loop() {
 } //loop
 
 
-void NiceBusT4::handle_char_(uint8_t c) {
+void NiceBusT4Cover::handle_char_(uint8_t c) {
   this->rx_message_.push_back(c);                      // кидаем байт в конец полученного сообщения
   if (!this->validate_message_()) {                    // проверяем получившееся сообщение
     this->rx_message_.clear();                         // если проверка не прошла, то в сообщении мусор, нужно удалить
@@ -128,7 +128,7 @@ void NiceBusT4::handle_char_(uint8_t c) {
 }
 
 
-bool NiceBusT4::validate_message_() {                    // проверка получившегося сообщения
+bool NiceBusT4Cover::validate_message_() {                    // проверка получившегося сообщения
   uint32_t at = this->rx_message_.size() - 1;       // номер последнего полученного байта
   uint8_t *data = &this->rx_message_[0];               // указатель на первый байт сообщения
   uint8_t new_byte = data[at];                      // последний полученный байт
@@ -224,7 +224,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
 
 
 // разбираем полученные пакеты
-void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
+void NiceBusT4Cover::parse_status_packet (const std::vector<uint8_t> &data) {
   if ((data[1] == 0x0d) && (data[13] == 0xFD)) { // ошибка
     ESP_LOGE(TAG,  "Команда недоступна для этого устройства" );
   }
@@ -729,7 +729,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
 
 
 
-void NiceBusT4::dump_config() {    //  добавляем в  лог информацию о подключенном контроллере
+void NiceBusT4Cover::dump_config() {    //  добавляем в  лог информацию о подключенном контроллере
   ESP_LOGCONFIG(TAG, "  Bus T4 Cover");
   /*ESP_LOGCONFIG(TAG, "  Address: 0x%02X%02X", *this->header_[1], *this->header_[2]);*/
   switch (this->class_gate_) {
@@ -799,7 +799,7 @@ void NiceBusT4::dump_config() {    //  добавляем в  лог инфор�
 
 
 //формирование команды управления
-std::vector<uint8_t> NiceBusT4::gen_control_cmd(const uint8_t control_cmd) {
+std::vector<uint8_t> NiceBusT4Cover::gen_control_cmd(const uint8_t control_cmd) {
   std::vector<uint8_t> frame = {(uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), (uint8_t)(this->from_addr >> 8), (uint8_t)(this->from_addr & 0xFF)}; // заголовок
   frame.push_back(CMD);  // 0x01
   frame.push_back(0x05);
@@ -824,7 +824,7 @@ std::vector<uint8_t> NiceBusT4::gen_control_cmd(const uint8_t control_cmd) {
 }
 
 // формирование команды INF с данными и без
-std::vector<uint8_t> NiceBusT4::gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, const std::vector<uint8_t> &data, size_t len) {
+std::vector<uint8_t> NiceBusT4Cover::gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, const std::vector<uint8_t> &data, size_t len) {
   std::vector<uint8_t> frame = {to_addr1, to_addr2, (uint8_t)(this->from_addr >> 8), (uint8_t)(this->from_addr & 0xFF)}; // заголовок
   frame.push_back(INF);  // 0x08 mes_type
   frame.push_back(0x06 + len); // mes_size
@@ -857,7 +857,7 @@ std::vector<uint8_t> NiceBusT4::gen_inf_cmd(const uint8_t to_addr1, const uint8_
 }
 
 
-void NiceBusT4::send_raw_cmd(std::string data) {
+void NiceBusT4Cover::send_raw_cmd(std::string data) {
 
   std::vector < uint8_t > v_cmd = raw_cmd_prepare (data);
   send_array_cmd (&v_cmd[0], v_cmd.size());
@@ -866,7 +866,7 @@ void NiceBusT4::send_raw_cmd(std::string data) {
 
 
 //  Сюда нужно добавить проверку на неправильные данные от пользователя
-std::vector<uint8_t> NiceBusT4::raw_cmd_prepare (std::string data) { // подготовка введенных пользователем данных для возможности отправки
+std::vector<uint8_t> NiceBusT4Cover::raw_cmd_prepare (std::string data) { // подготовка введенных пользователем данных для возможности отправки
 
   //  data.erase(remove_if(data.begin(), data.end(), ::isspace), data.end()); //удаляем пробелы
   data.erase(remove_if(data.begin(), data.end(), [](const unsigned char ch) {
@@ -891,10 +891,10 @@ std::vector<uint8_t> NiceBusT4::raw_cmd_prepare (std::string data) { // подг
 
 
 
-void NiceBusT4::send_array_cmd (std::vector<uint8_t> data) {          // отправляет break + подготовленную ранее в массиве команду
+void NiceBusT4Cover::send_array_cmd (std::vector<uint8_t> data) {          // отправляет break + подготовленную ранее в массиве команду
   return send_array_cmd((const uint8_t *)data.data(), data.size());
 }
-void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
+void NiceBusT4Cover::send_array_cmd (const uint8_t *data, size_t len) {
   // отправка данных в uart
   char br_ch = 0x00;                                               // для break
   Serial1.flush();
@@ -919,10 +919,10 @@ void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
 
 
 // генерация и отправка inf команд из yaml конфигурации
-void NiceBusT4::send_inf_cmd(std::string to_addr, std::string whose, std::string command, std::string type_command, std::string next_data, bool data_on, std::string data_command) {
+void NiceBusT4Cover::send_inf_cmd(std::string to_addr, std::string whose, std::string command, std::string type_command, std::string next_data, bool data_on, std::string data_command) {
   std::vector < uint8_t > v_to_addr = raw_cmd_prepare (to_addr);
   std::vector < uint8_t > v_whose = raw_cmd_prepare (whose);
-  std::vector < uint8_t > v_command = NiceBusT4::raw_cmd_prepare (command);
+  std::vector < uint8_t > v_command = NiceBusT4Cover::raw_cmd_prepare (command);
   std::vector < uint8_t > v_type_command = raw_cmd_prepare (type_command);
   std::vector < uint8_t > v_next_data = raw_cmd_prepare (next_data);
   std::vector < uint8_t > v_data_command = raw_cmd_prepare (data_command);
@@ -936,14 +936,14 @@ void NiceBusT4::send_inf_cmd(std::string to_addr, std::string whose, std::string
 }
 
 // генерация и отправка команд установки контроллеру привода из yaml конфигурации с минимальными параметрами
-void NiceBusT4::set_mcu(std::string command, std::string data_command) {
+void NiceBusT4Cover::set_mcu(std::string command, std::string data_command) {
     std::vector < uint8_t > v_command = raw_cmd_prepare (command);
     std::vector < uint8_t > v_data_command = raw_cmd_prepare (data_command);
     tx_buffer_.push(gen_inf_cmd(0x04, v_command[0], 0xa9, 0x00, v_data_command));
   }
   
 // инициализация устройства
-void NiceBusT4::init_device (const uint8_t addr1, const uint8_t addr2, const uint8_t device ) {
+void NiceBusT4Cover::init_device (const uint8_t addr1, const uint8_t addr2, const uint8_t device ) {
   if (device == FOR_CU) {
     tx_buffer_.push(gen_inf_cmd(addr1, addr2, device, TYPE_M, GET, 0x00)); // запрос типа привода
     tx_buffer_.push(gen_inf_cmd(addr1, addr2, FOR_ALL, MAN, GET, 0x00)); // запрос производителя
