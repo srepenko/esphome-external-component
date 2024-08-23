@@ -9,6 +9,12 @@ static const char *TAG = "NiceBusT4Cover";
 
 using namespace esphome::cover;
 
+CoverTraits NiceBusT4Cover::get_traits() {
+  auto traits = CoverTraits();
+  traits.set_supports_position(true);
+  traits.set_supports_stop(true);
+  return traits;
+}
 
 void NiceBusT4Cover::control(const CoverCall &call) {
 
