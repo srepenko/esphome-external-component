@@ -62,17 +62,6 @@ void NiceBusT4Cover::control(const CoverCall &call) {
 }
 
 void NiceBusT4Cover::setup() {
-//  delay (5000);   // пока привод не стартанёт, на команды отвечать не будет
-  //_uart =  uart_init(_UART_NO, BAUD_WORK, SERIAL_8N1, SERIAL_FULL, TX_P, 256, false);
-  // unsigned long baud, uint32_t config = SERIAL_8N1, int8_t rxPin = -1, int8_t txPin = -1, bool invert = false, unsigned long timeout_ms = 20000UL,
-  //Serial.begin(BAUD_WORK, SERIAL_8N1, rxPin, txPin, false, 256);
-  Serial1.begin(BAUD_WORK, SERIAL_8N1, this->rx_pin, this->tx_pin);
-//  delay (500);
-  //  this->last_init_command_ = 0;
-  // кто в сети?
-//  this->tx_buffer_.push(gen_inf_cmd(0x00, 0xff, FOR_ALL, WHO, GET, 0x00));
-  
-
 }
 
 void NiceBusT4Cover::loop() {
