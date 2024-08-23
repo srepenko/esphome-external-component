@@ -359,6 +359,11 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     // генерация cmd команд
     std::vector<uint8_t> gen_control_cmd(const uint8_t control_cmd);	    	
 	
+    void parse_status_packet (const std::vector<uint8_t> &data); // разбираем пакет статуса
+
+    void handle_char_(uint8_t c);                                         // обработчик полученного байта
+    bool validate_message_();                                         // функция проверки полученного сообщения
+
     void init_device (const uint8_t addr1, const uint8_t addr2, const uint8_t device );
     void send_array_cmd (std::vector<uint8_t> data);	
     void send_array_cmd (const uint8_t *data, size_t len);
@@ -367,12 +372,17 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
     bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
 	
+    std::vector<uint8_t> manufacturer_ = {0x55, 0x55};  // при инициализации неизвестный производитель
+    std::vector<uint8_t> product_;
+    std::vector<uint8_t> hardware_;
+    std::vector<uint8_t> firmware_;
+    std::vector<uint8_t> description_;	
+    std::vector<uint8_t> oxi_product;
+    std::vector<uint8_t> oxi_hardware;
+    std::vector<uint8_t> oxi_firmware;
+    std::vector<uint8_t> oxi_description;	
     
-    void parse_status_packet (const std::vector<uint8_t> &data); // разбираем пакет статуса
-
-    void handle_char_(uint8_t c);                                         // обработчик полученного байта
-    bool validate_message_();                                         // функция проверки полученного сообщения
-
+    
     uint32_t last_update;
 };
 
