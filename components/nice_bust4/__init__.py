@@ -5,11 +5,19 @@ from esphome.components import uart
 from esphome.const import CONF_ID
 
 DEPENDENCIES = ["uart"]
+MULTI_CONF = True
+CONF_NICEBUST4_ID = "nice_bust4_id"
 
 nice_bust4_ns = cg.esphome_ns.namespace("nice_bust4")
 NiceBusT4 = nice_bust4_ns.class_(
     "NiceBusT4", cg.Component, uart.UARTDevice, cover.Cover
 #    "NiceBusT4", cg.Component, uart.IDFUARTComponent, cover.Cover
+)
+
+NICEBUST4_COMPONENT_SCHEMA = cv.Schema(
+    {
+        
+    }
 )
 
 CONFIG_SCHEMA = (
