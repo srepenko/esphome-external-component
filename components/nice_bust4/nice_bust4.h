@@ -20,8 +20,8 @@ class NiceBusT4 : public uart::IDFUARTComponent{
 
 
     std::vector<uint8_t> rx_message_;                          // здесь побайтно накапливается принятое сообщение
-    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
-    bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
+//    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
+//    bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
 	
     uint32_t update_interval_{500};
     uint32_t last_update_{0};
