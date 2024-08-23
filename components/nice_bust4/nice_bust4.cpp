@@ -62,10 +62,10 @@ void NiceBusT4::dump_config(){
     ESP_LOGCONFIG(TAG, "NiceBusT4");
 }
 
-void NiceBusT4Cover::send_array_cmd (std::vector<uint8_t> data) {          // отправляет break + подготовленную ранее в массиве команду
+void NiceBusT4::send_array_cmd (std::vector<uint8_t> data) {          // отправляет break + подготовленную ранее в массиве команду
   return send_array_cmd((const uint8_t *)data.data(), data.size());
 }
-void NiceBusT4Cover::send_array_cmd (const uint8_t *data, size_t len) {
+void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
   // отправка данных в uart
   /*
   uint8_t dummy = 0x00;
