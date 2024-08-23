@@ -367,7 +367,7 @@ struct packet_rsp_body_t {
 class NiceBusT4Cover : public Component, public Cover{
 //class NiceBusT4 : public uart::UARTDevice, public Component, public Cover {
   public:
-	  void set_parent(NiceBusT4 *const parent) { this->parent_ = parent; }
+	  
     // настройки привода
     bool autocls_flag; // Автозакрывание - L1
     bool photocls_flag; // Закрыть после фото - L2
@@ -400,7 +400,8 @@ class NiceBusT4Cover : public Component, public Cover{
     void setup() override;
     void loop() override;
     void dump_config() override; // для вывода в лог информации об оборудовнии
-
+    void set_parent(NiceBusT4 *const parent) { this->parent_ = parent; }
+    
   protected:
     void control(const cover::CoverCall &call) override;
     void send_command_(const uint8_t *data, uint8_t len);
