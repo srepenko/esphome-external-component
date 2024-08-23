@@ -5,7 +5,7 @@ from esphome.const import CONF_ADDRESS, CONF_ID, CONF_UPDATE_INTERVAL, CONF_USE_
 
 DEPENDENCIES = ["nice_bust4"]
 
-import CONF_NICEBUST4_ID, NICEBUST4_COMPONENT_SCHEMA, nice_bust4_ns
+from .. import CONF_NICEBUST4_ID, NICEBUST4_COMPONENT_SCHEMA, nice_bust4_ns
 
 NiceBusT4Cover = nice_bust4_ns.class_('NiceBusT4Cover', cover.Cover, cg.Component)
 
