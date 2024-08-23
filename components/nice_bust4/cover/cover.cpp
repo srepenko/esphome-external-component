@@ -890,25 +890,19 @@ void NiceBusT4Cover::send_array_cmd (std::vector<uint8_t> data) {          // о
 }
 void NiceBusT4Cover::send_array_cmd (const uint8_t *data, size_t len) {
   // отправка данных в uart
-  char br_ch = 0x00;                                               // для break
-  Serial1.flush();
-  //uart_set_line_inverse(param_ptr_config->uart_port_num, UART_INVERSE_TXD);
-  //ets_delay_us(1250);
-  //uart_set_line_inverse(param_ptr_config->uart_port_num, UART_INVERSE_DISABLE)
-  Serial1.updateBaudRate(BAUD_BREAK);
-  Serial1.write(&br_ch, 1);                                         // отправляем ноль на низкой скорости, длиинный ноль
-  //Serial1.flush();
-  delayMicroseconds(90);                                          // добавляем задержку к ожиданию, иначе скорость переключится раньше отправки. С задержкой на d1-mini я получил идеальный сигнал, break = 520us
-  Serial1.updateBaudRate(BAUD_WORK);
-  Serial1.write(data, len);  
-  //Serial1.flush();
-  //Microseconds  bit   byte
-  //19200	        52	  521
-  //delayMicroseconds(521*len);
-  //uart_wait_tx_empty(_uart);                                       // ждем завершения отправки
+
+  uint8_t dummy = 0x00;
+  uart_flush_input(this->uart_num_);
+  uart_get_baudrate(this->uart_num_, &baudrate);
+  #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
+  uart_set_baudrate(this->uart_num_, LIN_BREAK_BAUDRATE(baudrate));
+  uart_write_bytes(this->uart_num_, (char *)&dummy, 1);              // send a zero byte.  This call must be blocking.
+  uart_wait_tx_done(this->uart_num_, 2);                             // shouldn't be necessary??
+  uart_wait_tx_done(this->uart_num_, 2);                             // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
+  uart_set_baudrate(this->uart_num_, baudrate);                      // set baudrate back to normal after break is sent
+  uart_write_bytes(this->uart_num_, data, len);
   std::string pretty_cmd = format_hex_pretty((uint8_t*)&data[0], len);                    // для вывода команды в лог
   ESP_LOGI(TAG,  "Отправлено: %S ", pretty_cmd.c_str() );
-
 }
 
 
