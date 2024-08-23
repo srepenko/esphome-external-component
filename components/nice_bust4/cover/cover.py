@@ -18,7 +18,7 @@ NICE_COVER_SCHEMA  = cover.COVER_SCHEMA.extend({
 }).extend(cv.COMPONENT_SCHEMA)
 
 CONFIG_SCHEMA = NICEBUST4_COMPONENT_SCHEMA.extend({
-        NICE_COVER_SCHEMA
+        cv.NICE_COVER_SCHEMA
 })
         
 async def to_code(config):
