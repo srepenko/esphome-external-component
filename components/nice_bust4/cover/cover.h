@@ -16,7 +16,7 @@ using namespace esphome::cover;
 // создаю класс, наследую членов классов Component и Cover
 class NiceBusT4Cover : public Component, public Cover{
   public:
-    InverterSelect() {}
+    NiceBusT4Cover() {}
     void setup() override;
     void loop() override;
     void dump_config() override; // для вывода в лог информации об оборудовнии
