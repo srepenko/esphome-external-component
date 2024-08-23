@@ -56,7 +56,7 @@ BusT4                       ESP8266
 
 
 namespace esphome {
-namespace nice_bust4 {
+namespace bus_t4 {
 
 /* для короткого обращения к членам класса */
 using namespace esphome::cover;
@@ -482,5 +482,5 @@ class NiceBusT4 : public Component, public Cover{
 
 }; //класс
 
-} // namespace nice_bust4
+} // namespace bus_t4
 } // namespace esphome
