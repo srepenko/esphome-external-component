@@ -8,12 +8,13 @@ namespace nice_bust4 {
 static const char *TAG = "nice_bust4.component";
 
 void NiceBusT4::setup() {
+    this->uart_num_ = this->uart_.get_hw_serial_number();
 }
 
 void NiceBusT4::loop() {
     uint8_t data[128];
     int length = 0;
-    this->uart_num_ = this->uart_.get_hw_serial_number();
+    
     uint8_t lin_uart_num = this->uart_num_;
     ESP_ERROR_CHECK(uart_get_buffered_data_len(lin_uart_num, (size_t*)&length));
     if (length > 0) {
