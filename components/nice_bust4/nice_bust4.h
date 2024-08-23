@@ -323,9 +323,8 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     void dump_config() override;
 
 
-      void gen_control_cmd_(const uint8_t control_cmd){
-        return tx_buffer_.push(gen_control_cmd(control_cmd));
-    }
+    void gen_control_cmd_(const uint8_t control_cmd){return tx_buffer_.push(gen_control_cmd(control_cmd));}
+    void gen_inf_cmd_(const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd){return tx_buffer_.push(gen_inf_cmd(whose, inf_cmd, run_cmd));}
   protected:
 //    void send_command_(const uint8_t *data, uint8_t len);
 
