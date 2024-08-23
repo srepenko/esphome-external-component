@@ -9,16 +9,14 @@ namespace nice_bust4 {
 //#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
 
 
-class NiceBusT4 : public Component, public uart::UARTDevice{
-//class NiceBusT4 : public uart::IDFUARTComponent{
+//class NiceBusT4 : public Component, public uart::UARTDevice{
+class NiceBusT4 : public uart::IDFUARTComponent{
   public:
     void setup() override;
     void loop() override;
     void dump_config() override;
   protected:
     uint32_t last_update;
-    uart::IDFUARTComponent uart_;
-    uint8_t uart_num_;
 };
 
 
