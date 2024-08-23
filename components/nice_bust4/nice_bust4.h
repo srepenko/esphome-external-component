@@ -317,6 +317,41 @@ class NiceBusT4 : public uart::IDFUARTComponent{
   protected:
 //    void send_command_(const uint8_t *data, uint8_t len);
 
+    uint32_t update_interval_{500};
+    uint32_t last_update_{0};
+    uint32_t last_uart_byte_{0};
+
+    uint8_t last_published_op_;
+    float last_published_pos_;
+
+	
+    uint8_t class_gate_ = 0x55; // 0x01 sliding, 0x02 sectional, 0x03 swing, 0x04 barrier, 0x05 up-and-over
+//    uint8_t last_init_command_;
+	
+    bool init_cu_flag = false;	
+    bool init_oxi_flag = false;	
+    uint16_t _max_opn = 0;  // максимальная позиция энкодера или таймера
+    uint16_t _pos_opn = 2048;  // позиция открытия энкодера или таймера, не для всех приводов.
+    uint16_t _pos_cls = 0;  // позиция закрытия энкодера или таймера, не для всех приводов
+    uint16_t _pos_usl = 0;  // условная текущая позиция энкодера или таймера, не для всех приводов	
+    // настройки заголовка формируемого пакета
+    uint16_t from_addr  = 0x0066; //от кого пакет, адрес bust4 шлюза
+    uint16_t to_addr; // = 0x00ff;	 // кому пакет, адрес контроллера привода, которым управляем
+    uint16_t oxi_addr; // = 0x000a;	 // адрес приемника
+
+    std::vector<uint8_t> raw_cmd_prepare (std::string data);             // подготовка введенных пользователем данных для возможности отправки	
+	
+    // генерация inf команд
+    std::vector<uint8_t> gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, const std::vector<uint8_t> &data, size_t len);	 // все поля
+    std::vector<uint8_t> gen_inf_cmd(const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd) {return gen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, 0x00, {0x00}, 0 );} // для команд без данных
+    std::vector<uint8_t> gen_inf_cmd(const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, std::vector<uint8_t> data){
+	    return gen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), whose, inf_cmd, run_cmd, next_data, data, data.size());} // для команд c данными
+    std::vector<uint8_t> gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data){
+	    return gen_inf_cmd(to_addr1, to_addr2, whose, inf_cmd, run_cmd, next_data, {0x00}, 0);} // для команд с адресом и без данных 	
+    	    
+    // генерация cmd команд
+    std::vector<uint8_t> gen_control_cmd(const uint8_t control_cmd);	    	
+	
 
     std::vector<uint8_t> rx_message_;                          // здесь побайтно накапливается принятое сообщение
 //    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
