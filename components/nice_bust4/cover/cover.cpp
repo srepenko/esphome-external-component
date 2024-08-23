@@ -27,8 +27,6 @@ CoverTraits NiceBusT4Cover::get_traits() {
   PARENTAL OPEN 1   55 0c 00 ff 00 66 01 05 9D 01 82 05 64 E2 0c
   PARENTAL OPEN 2   55 0c 00 ff 00 66 01 05 9D 01 82 06 64 E1 0c
 
-
-
 */
 
 void NiceBusT4Cover::control(const CoverCall &call) {
