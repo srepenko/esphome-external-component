@@ -127,7 +127,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   ESP_LOGI(TAG,  "Получен пакет: %S ", pretty_cmd.c_str() );
 
   // здесь что-то делаем с сообщением
-  parse_status_packet(rx_message_);
+  //parse_status_packet(rx_message_);
 
 
 
@@ -136,7 +136,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
 
 }
 
-
+/*
 void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
   if ((data[1] == 0x0d) && (data[13] == 0xFD)) { // ошибка
     ESP_LOGE(TAG,  "Команда недоступна для этого устройства" );
@@ -630,11 +630,11 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
       this->publish_state();  // публикуем состояние
 
     } //if
-  */
+  +/
 
 
   ////////////////////////////////////////////////////////////////////////////////////////
 } // function
-
+*/
 }  // namespace nice_bust4
 }  // namespace esphome
