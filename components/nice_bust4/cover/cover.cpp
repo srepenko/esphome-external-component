@@ -111,7 +111,6 @@ void NiceBusT4Cover::loop() {
 }
 } //loop
 
-
 void NiceBusT4Cover::handle_char_(uint8_t c) {
   this->rx_message_.push_back(c);                      // кидаем байт в конец полученного сообщения
   if (!this->validate_message_()) {                    // проверяем получившееся сообщение
