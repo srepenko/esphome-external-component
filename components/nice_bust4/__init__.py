@@ -6,14 +6,11 @@ from esphome.const import CONF_ID
 DEPENDENCIES = ["uart"]
 AUTO_LOAD = ["cover"]
 MULTI_CONF = True
+
 CONF_NICEBUST4_ID = "nice_bust4_id"
 
 nice_bust4_ns = cg.esphome_ns.namespace("nice_bust4")
-
-NiceBusT4 = nice_bust4_ns.class_(
-    "NiceBusT4", cg.Component, uart.UARTDevice
-#    "NiceBusT4", cg.Component, uart.IDFUARTComponent, cover.Cover
-)
+NiceBusT4 = nice_bust4_ns.class_("NiceBusT4", cg.Component, uart.UARTDevice)
 
 NICEBUST4_COMPONENT_SCHEMA = cv.Schema(
     {
@@ -23,7 +20,7 @@ NICEBUST4_COMPONENT_SCHEMA = cv.Schema(
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema({cv.GenerateID(): cv.declare_id(NiceBusT4)})
-#    .extend(cv.polling_component_schema("1000ms"))
+    .extend(cv.polling_component_schema("1000ms"))
     .extend(uart.UART_DEVICE_SCHEMA)
 )
 
