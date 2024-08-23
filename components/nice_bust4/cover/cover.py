@@ -7,7 +7,7 @@ from .. import CONF_NICEBUST4_ID, INVERTER_NICEBUST4_SCHEMA, nice_bust4_ns
 
 Nice = nice_bust4_ns.class_('NiceBusT4', cover.Cover, cg.Component)
 
-CONFIG_SCHEMA = cover.COVER_SCHEMA.extend({
+CONFIG_SCHEMA = cover.INVERTER_NICEBUST4_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(Nice),
    cv.Optional(CONF_ADDRESS): cv.hex_uint16_t,
     cv.Optional(CONF_USE_ADDRESS): cv.hex_uint16_t,
