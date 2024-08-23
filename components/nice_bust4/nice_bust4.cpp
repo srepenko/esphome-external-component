@@ -718,5 +718,38 @@ void NiceBusT4::init_device (const uint8_t addr1, const uint8_t addr2, const uin
   
 }
 
+// формирование команды INF с данными и без
+std::vector<uint8_t> NiceBusT4::gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data, const std::vector<uint8_t> &data, size_t len) {
+  std::vector<uint8_t> frame = {to_addr1, to_addr2, (uint8_t)(this->from_addr >> 8), (uint8_t)(this->from_addr & 0xFF)}; // заголовок
+  frame.push_back(INF);  // 0x08 mes_type
+  frame.push_back(0x06 + len); // mes_size
+  uint8_t crc1 = (frame[0] ^ frame[1] ^ frame[2] ^ frame[3] ^ frame[4] ^ frame[5]);
+  frame.push_back(crc1);
+  frame.push_back(whose);
+  frame.push_back(inf_cmd);
+  frame.push_back(run_cmd);
+  frame.push_back(next_data); // next_data
+  frame.push_back(len);
+  if (len > 0) {
+    frame.insert(frame.end(), data.begin(), data.end()); // блок данных
+  }
+  uint8_t crc2 = frame[7];
+  for (size_t i = 8; i < 12 + len; i++) {
+    crc2 = crc2 ^ frame[i];
+  }
+  frame.push_back(crc2);
+  uint8_t f_size = frame.size();
+  frame.push_back(f_size);
+  frame.insert(frame.begin(), f_size);
+  frame.insert(frame.begin(), START_CODE);
+
+  // для вывода команды в лог
+  //  std::string pretty_cmd = format_hex_pretty(frame);
+  //  ESP_LOGI(TAG,  "Сформирован INF пакет: %S ", pretty_cmd.c_str() );
+
+  return frame;
+
+}
+
 }  // namespace nice_bust4
 }  // namespace esphome
