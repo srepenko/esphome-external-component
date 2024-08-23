@@ -21,11 +21,11 @@ NICEBUST4_SCHEMA = cv.Schema(
 CONFIG_SCHEMA = cv.All(
     cv.Schema({cv.GenerateID(): cv.declare_id(NiceBusT4)})
     #.extend(cv.polling_component_schema("1000ms"))
-    .extend(uart.UART_DEVICE_SCHEMA)
+    #.extend(uart.UART_DEVICE_SCHEMA)
 )
 
 
 def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     yield cg.register_component(var, config)
-    yield uart.register_uart_device(var, config)
+    #yield uart.register_uart_device(var, config)
