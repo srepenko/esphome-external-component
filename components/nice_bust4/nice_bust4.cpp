@@ -1,7 +1,6 @@
 #include "esphome/core/log.h"
 #include "nice_bust4.h"
 #include "esphome/core/helpers.h"  // для использования вспомогательных функция работ со строками
-#include "esphome/components/uart/uart_component_esp_idf.h"
 
 namespace esphome {
 namespace nice_bust4 {
