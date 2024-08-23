@@ -21,6 +21,7 @@ void NiceBusT4Cover::control(const CoverCall &call) {
   if (call.get_stop()) {
     // uint8_t data[2] = {CONTROL, STOP};
     tx_buffer_.push(gen_control_cmd(STOP));
+    /*
     tx_buffer_.push(gen_inf_cmd(FOR_CU, INF_STATUS, GET));   //Состояние ворот (Открыто/Закрыто/Остановлено)
     if (is_walky) {
       tx_buffer_.push(gen_inf_cmd((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), FOR_CU, CUR_POS, GET, 0x00, {0x01}, 1));  // запрос текущей позиции для энкодера
@@ -28,7 +29,7 @@ void NiceBusT4Cover::control(const CoverCall &call) {
     else {
       tx_buffer_.push(gen_inf_cmd(FOR_CU, CUR_POS, GET));    // запрос условного текущего положения привода
     }
-
+    */
 
   } /*else if (call.get_position().has_value()) {
     auto pos = *call.get_position();
