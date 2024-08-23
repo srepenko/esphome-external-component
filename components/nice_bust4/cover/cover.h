@@ -57,7 +57,7 @@ BusT4                       ESP8266
 
 namespace esphome {
 namespace nice_bust4 {
-
+class NiceBusT4;
 /* для короткого обращения к членам класса */
 using namespace esphome::cover;
 //using esp8266::timeoutTemplate::oneShotMs;
