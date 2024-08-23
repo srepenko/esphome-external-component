@@ -16,8 +16,7 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     void loop() override;
     void dump_config() override;
   protected:
-    void control(const cover::CoverCall &call) override;
-    void send_command_(const uint8_t *data, uint8_t len);
+//    void send_command_(const uint8_t *data, uint8_t len);
 
     uint32_t update_interval_{500};
     uint32_t last_update_{0};
@@ -26,7 +25,7 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     uint8_t last_published_op_;
     float last_published_pos_;
 
-    void handle_char_(uint8_t c);                                         // обработчик полученного байта
+//    void handle_char_(uint8_t c);                                         // обработчик полученного байта
     uint32_t last_update;
 };
 
