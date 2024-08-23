@@ -91,9 +91,9 @@ void NiceBusT4Cover::loop() {
 
   uint8_t data[128];
   int length = 0;
-  ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
+  ESP_ERROR_CHECK(uart_get_buffered_data_len(this->parent_->uart_num_, (size_t*)&length));
   if (length > 0) {
-    length = uart_read_bytes(lin_uart_num, data, length, 100);
+    length = uart_read_bytes(this->parent_->uart_num_, data, length, 100);
     std::string pretty_cmd1 = format_hex_pretty(data, length);
     ESP_LOGI(TAG,  "Входящие данные: %S ", pretty_cmd1.c_str() );
     for (int i=0; i< length; ++i) {
