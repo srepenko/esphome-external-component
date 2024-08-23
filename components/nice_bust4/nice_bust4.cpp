@@ -137,5 +137,504 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
 }
 
 
+void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
+  if ((data[1] == 0x0d) && (data[13] == 0xFD)) { // ошибка
+    ESP_LOGE(TAG,  "Команда недоступна для этого устройства" );
+  }
+
+  if (((data[11] == 0x18) || (data[11] == 0x19)) && (data[13] == NOERR)) { // if evt
+    ESP_LOGD(TAG, "Получен пакет EVT с данными. Последняя ячейка %d ", data[12]);
+    std::vector<uint8_t> vec_data(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+    std::string str(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+    ESP_LOGI(TAG,  "Строка с данными: %S ", str.c_str() );
+    std::string pretty_data = format_hex_pretty(vec_data);
+    ESP_LOGI(TAG,  "Данные HEX %S ", pretty_data.c_str() );
+    // получили пакет с данными EVT, начинаем разбирать
+
+    if ((data[6] == INF) && (data[9] == FOR_CU)  && (data[11] == GET - 0x80) && (data[13] == NOERR)) { // интересуют ответы на запросы GET, пришедшие без ошибок от привода
+      ESP_LOGI(TAG,  "Получен ответ на запрос %X ", data[10] );
+      switch (data[10]) { // cmd_submnu
+        case TYPE_M:
+          //           ESP_LOGI(TAG,  "Тип привода %X",  data[14]);
+          switch (data[14]) { //14
+            case SLIDING:
+              this->class_gate_ = SLIDING;
+              //        ESP_LOGD(TAG, "Тип ворот: Откатные %#X ", data[14]);
+              break;
+            case SECTIONAL:
+              this->class_gate_ = SECTIONAL;
+              //        ESP_LOGD(TAG, "Тип ворот: Секционные %#X ", data[14]);
+              break;
+            case SWING:
+              this->class_gate_ = SWING;
+              //        ESP_LOGD(TAG, "Тип ворот: Распашные %#X ", data[14]);
+              break;
+            case BARRIER:
+              this->class_gate_ = BARRIER;
+              //        ESP_LOGD(TAG, "Тип ворот: Шлагбаум %#X ", data[14]);
+              break;
+            case UPANDOVER:
+              this->class_gate_ = UPANDOVER;
+              //        ESP_LOGD(TAG, "Тип ворот: Подъемно-поворотные %#X ", data[14]);
+              break;
+          }  // switch 14
+          break; //  TYPE_M
+        case INF_IO: // ответ на запрос положения концевика откатных ворот
+          switch (data[16]) { //16
+            case 0x00:
+              ESP_LOGI(TAG, "  Концевик не сработал ");
+              break; // 0x00
+            case 0x01:
+              ESP_LOGI(TAG, "  Концевик на закрытие ");
+              this->position = COVER_CLOSED;
+              break; //  0x01
+            case 0x02:
+              ESP_LOGI(TAG, "  Концевик на открытие ");
+              this->position = COVER_OPEN;
+              break; // 0x02
+
+          }  // switch 16
+          this->publish_state();  // публикуем состояние
+
+          break; //  INF_IO
+
+
+        //положение максимального открытия энкодера, открытия, закрытия
+
+        case MAX_OPN:
+          if (is_walky) {
+            this->_max_opn = data[15];
+            this->_pos_opn = data[15];
+          }
+          else {  
+            this->_max_opn = (data[14] << 8) + data[15];
+          }
+          ESP_LOGI(TAG, "Максимальное положение энкодера: %d", this->_max_opn);
+          break;
+
+        case POS_MIN:
+          this->_pos_cls = (data[14] << 8) + data[15];
+          ESP_LOGI(TAG, "Положение закрытых ворот: %d", this->_pos_cls);
+          break;
+
+        case POS_MAX:
+          if (((data[14] << 8) + data[15])>0x00) { // если в ответе от привода есть данные о положении открытия
+          this->_pos_opn = (data[14] << 8) + data[15];}
+          ESP_LOGI(TAG, "Положение открытых ворот: %d", this->_pos_opn);
+          break;
+
+        case CUR_POS:
+          if (is_walky) {
+            this->_pos_usl = data[15];
+          }
+          else {
+            this->_pos_usl = (data[14] << 8) + data[15];
+          }
+          this->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
+          ESP_LOGI(TAG, "Условное положение ворот: %d, положение в %%: %f", _pos_usl, (_pos_usl - _pos_cls) * 100.0f / (_pos_opn - _pos_cls));
+          this->publish_state();  // публикуем состояние
+          break;
+
+        case 0x01:
+          switch (data[14]) {
+            case OPENED:
+              ESP_LOGI(TAG, "  Ворота открыты");
+              this->position = COVER_OPEN;
+              this->current_operation = COVER_OPERATION_IDLE;
+              break;
+            case CLOSED:
+              ESP_LOGI(TAG, "  Ворота закрыты");
+              this->position = COVER_CLOSED;
+              this->current_operation = COVER_OPERATION_IDLE;
+              break;
+            case 0x01:
+              ESP_LOGI(TAG, "  Ворота остановлены");
+              this->current_operation = COVER_OPERATION_IDLE;
+              //          this->position = COVER_OPEN;
+              break;
+            case 0x00:
+              ESP_LOGI(TAG, "  Статус ворот неизвестен");
+              this->current_operation = COVER_OPERATION_IDLE;
+              break;
+             case 0x0b:
+              ESP_LOGI(TAG, "  Поиск положений сделан");
+              this->current_operation = COVER_OPERATION_IDLE;
+              break;
+              case STA_OPENING:
+              ESP_LOGI(TAG, "  Идёт открывание");
+              this->current_operation = COVER_OPERATION_OPENING;
+              break;
+              case STA_CLOSING:
+              ESP_LOGI(TAG, "  Идёт закрывание");
+              this->current_operation = COVER_OPERATION_CLOSING;
+              break;
+          }  // switch
+          this->publish_state();  // публикуем состояние
+          break;
+
+          //      default: // cmd_mnu
+        case AUTOCLS:
+          this->autocls_flag = data[14];
+          break;
+          
+        case PH_CLS_ON:
+          this->photocls_flag = data[14];
+          break;  
+          
+        case ALW_CLS_ON:
+          this->alwayscls_flag = data[14];
+          break;  
+          
+      } // switch cmd_submnu
+    } // if ответы на запросы GET, пришедшие без ошибок от привода
+    
+    if ((data[6] == INF) && (data[9] == FOR_CU)  && (data[11] == SET - 0x80) && (data[13] == NOERR)) { // интересуют ответы на запросы SET, пришедшие без ошибок от привода    
+      switch (data[10]) { // cmd_submnu
+        case AUTOCLS:
+          tx_buffer_.push(gen_inf_cmd(FOR_CU, AUTOCLS, GET)); // Автозакрытие
+          break;
+          
+        case PH_CLS_ON:
+          tx_buffer_.push(gen_inf_cmd(FOR_CU, PH_CLS_ON, GET)); // Закрыть после Фото
+          break;  
+          
+        case ALW_CLS_ON:
+          tx_buffer_.push(gen_inf_cmd(FOR_CU, ALW_CLS_ON, GET)); // Всегда закрывать
+          break;  
+      }// switch cmd_submnu
+    }// if ответы на запросы SET, пришедшие без ошибок от привода
+
+    if ((data[6] == INF) && (data[9] == FOR_ALL)  && ((data[11] == GET - 0x80) || (data[11] == GET - 0x81)) && (data[13] == NOERR)) { // интересуют FOR_ALL ответы на запросы GET, пришедшие без ошибок
+
+      switch (data[10]) {
+        case MAN:
+          //       ESP_LOGCONFIG(TAG, "  Производитель: %S ", str.c_str());
+          this->manufacturer_.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          break;
+        case PRD:
+          if (((uint8_t)(this->oxi_addr >> 8) == data[4]) && ((uint8_t)(this->oxi_addr & 0xFF) == data[5])) { // если пакет от приемника
+//            ESP_LOGCONFIG(TAG, "  Приёмник: %S ", str.c_str());
+            this->oxi_product.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          } // если пакет от приемника
+          else if (((uint8_t)(this->to_addr >> 8) == data[4]) && ((uint8_t)(this->to_addr & 0xFF) == data[5])) { // если пакет от контроллера привода
+//            ESP_LOGCONFIG(TAG, "  Привод: %S ", str.c_str());
+            this->product_.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+            std::vector<uint8_t> wla1 = {0x57,0x4C,0x41,0x31,0x00,0x06,0x57}; // для понимания, что привод Walky
+            if (this->product_ == wla1) { 
+              this->is_walky = true;
+         //     ESP_LOGCONFIG(TAG, "  Привод WALKY!: %S ", str.c_str());
+                                        }
+          }
+          break;
+        case HWR:
+          if (((uint8_t)(this->oxi_addr >> 8) == data[4]) && ((uint8_t)(this->oxi_addr & 0xFF) == data[5])) { // если пакет от приемника
+            this->oxi_hardware.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          }
+          else if (((uint8_t)(this->to_addr >> 8) == data[4]) && ((uint8_t)(this->to_addr & 0xFF) == data[5])) { // если пакет от контроллера привода          
+          this->hardware_.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          } //else
+          break;
+        case FRM:
+          if (((uint8_t)(this->oxi_addr >> 8) == data[4]) && ((uint8_t)(this->oxi_addr & 0xFF) == data[5])) { // если пакет от приемника
+            this->oxi_firmware.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          }
+          else if (((uint8_t)(this->to_addr >> 8) == data[4]) && ((uint8_t)(this->to_addr & 0xFF) == data[5])) { // если пакет от контроллера привода          
+            this->firmware_.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          } //else
+          break;
+        case DSC:
+          if (((uint8_t)(this->oxi_addr >> 8) == data[4]) && ((uint8_t)(this->oxi_addr & 0xFF) == data[5])) { // если пакет от приемника
+            this->oxi_description.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          }
+          else if (((uint8_t)(this->to_addr >> 8) == data[4]) && ((uint8_t)(this->to_addr & 0xFF) == data[5])) { // если пакет от контроллера привода          
+            this->description_.assign(this->rx_message_.begin() + 14, this->rx_message_.end() - 2);
+          } //else
+          break;
+        case WHO:
+          if (data[12] == 0x01) {
+            if (data[14] == 0x04) { // привод
+              this-> to_addr = ((uint16_t)data[4] << 8) | data[5];
+              this->init_ok = true;
+     //         init_device(data[4], data[5], data[14]);
+            }
+            else if (data[14] == 0x0A) { // приёмник
+              this-> oxi_addr = ((uint16_t)data[4] << 8) | data[5];
+              init_device(data[4], data[5], data[14]);
+            }
+          }
+          break;
+      }  // switch
+
+    }  // if  FOR_ALL ответы на запросы GET, пришедшие без ошибок
+
+    if ((data[9] == 0x0A) &&  (data[10] == 0x25) &&  (data[11] == 0x01) &&  (data[12] == 0x0A) &&  (data[13] == NOERR)) { //  пакеты от приемника с информацией о списке пультов, пришедшие без ошибок
+      ESP_LOGCONFIG(TAG, "Номер пульта: %X%X%X%X, команда: %X, кнопка: %X, режим: %X, счётчик нажатий: %d", vec_data[5], vec_data[4], vec_data[3], vec_data[2], vec_data[8] / 0x10, vec_data[5] / 0x10, vec_data[7] + 0x01, vec_data[6]);
+    }  // if
+
+    if ((data[9] == 0x0A) &&  (data[10] == 0x26) &&  (data[11] == 0x41) &&  (data[12] == 0x08) &&  (data[13] == NOERR)) { //  пакеты от приемника с информацией о считанной кнопке пульта
+      ESP_LOGCONFIG(TAG, "Кнопка %X, номер пульта: %X%X%X%X", vec_data[0] / 0x10, vec_data[0] % 0x10, vec_data[1], vec_data[2], vec_data[3]);
+    }  // if
+
+  } //  if evt
+
+
+
+  //else if ((data[14] == NOERR) && (data[1] > 0x0d)) {  // иначе пакет Responce - подтверждение полученной команды
+  else if (data[1] > 0x0d) {  // иначе пакет Responce - подтверждение полученной команды
+    ESP_LOGD(TAG, "Получен пакет RSP");
+    std::vector<uint8_t> vec_data(this->rx_message_.begin() + 12, this->rx_message_.end() - 3);
+    std::string str(this->rx_message_.begin() + 12, this->rx_message_.end() - 3);
+    ESP_LOGI(TAG,  "Строка с данными: %S ", str.c_str() );
+    std::string pretty_data = format_hex_pretty(vec_data);
+    ESP_LOGI(TAG,  "Данные HEX %S ", pretty_data.c_str() );
+    switch (data[9]) { // cmd_mnu
+      case FOR_CU:
+        ESP_LOGI(TAG,  "Пакет контроллера привода" );
+        switch (data[10] + 0x80) { // sub_inf_cmd
+          case RUN:
+            ESP_LOGI(TAG,  "Подменю RUN" );
+            switch (data[11] - 0x80) { // sub_run_cmd1
+              case SBS:
+                ESP_LOGI(TAG,  "Команда: Пошагово" );
+                break; // SBS
+              case STOP:
+                ESP_LOGI(TAG,  "Команда: STOP" );
+                break; // STOP
+              case OPEN:
+                ESP_LOGI(TAG,  "Команда: OPEN" );
+                this->current_operation = COVER_OPERATION_OPENING;
+                break; // OPEN
+              case CLOSE:
+                ESP_LOGI(TAG,  "Команда: CLOSE" );
+                this->current_operation = COVER_OPERATION_CLOSING;                
+                break;  // CLOSE
+              case P_OPN1:
+                ESP_LOGI(TAG,  "Команда: Частичное открывание" );
+                break; // P_OPN1
+              case STOPPED:
+                this->current_operation = COVER_OPERATION_IDLE;
+                ESP_LOGI(TAG, "Команда: Остановлено");
+                break; // STOPPED
+              case ENDTIME:
+                ESP_LOGI(TAG, "Операция завершена по таймауту");
+                break; // 
+
+            } // switch sub_run_cmd1
+            
+            switch (data[11]) { // sub_run_cmd2
+              case STA_OPENING:
+                ESP_LOGI(TAG,  "Операция: Открывается" );
+                this->current_operation = COVER_OPERATION_OPENING;
+                break; // OPEN
+              case STA_CLOSING:
+                ESP_LOGI(TAG,  "Операция: Закрывается" );
+                this->current_operation = COVER_OPERATION_CLOSING;                
+                break;  // CLOSING
+              case CLOSED:
+                ESP_LOGI(TAG,  "Операция: Закрыто" );
+                this->position = COVER_CLOSED;
+                this->current_operation = COVER_OPERATION_IDLE;
+                break;  // CLOSED  
+              case OPENED:
+                this->position = COVER_OPEN;
+                ESP_LOGI(TAG, "Операция: Открыто");
+                this->current_operation = COVER_OPERATION_IDLE;
+                break;
+              case STOPPED:
+                this->current_operation = COVER_OPERATION_IDLE;
+                ESP_LOGI(TAG, "Операция: Остановлено");
+                break;
+              default: // sub_run_cmd1
+                ESP_LOGI(TAG,  "Операция: %X", data[11] );                            
+            } // switch sub_run_cmd2                 
+            this->publish_state();  // публикуем состояние
+            break; //RUN
+
+          case STA:
+            ESP_LOGI(TAG,  "Подменю Статус в движении" );
+            switch (data[11]) { // sub_run_cmd2
+              case STA_OPENING:
+                ESP_LOGI(TAG,  "Движение: Открывается" );
+                this->current_operation = COVER_OPERATION_OPENING;
+                break; // STA_OPENING
+              case STA_CLOSING:
+                ESP_LOGI(TAG,  "Движение: Закрывается" );
+                this->current_operation = COVER_OPERATION_CLOSING;
+                break; // STA_CLOSING
+              case CLOSED:
+                ESP_LOGI(TAG,  "Движение: Закрыто" );
+                this->position = COVER_CLOSED;
+                this->current_operation = COVER_OPERATION_IDLE;
+                break;  // CLOSED  
+              case OPENED:
+                this->position = COVER_OPEN;
+                ESP_LOGI(TAG, "Движение: Открыто");
+                this->current_operation = COVER_OPERATION_IDLE;
+                break;
+              case STOPPED:
+                this->current_operation = COVER_OPERATION_IDLE;
+                ESP_LOGI(TAG, "Движение: Остановлено");
+                break;
+              default: // sub_run_cmd2
+                ESP_LOGI(TAG,  "Движение: %X", data[11] );
+
+                
+            } // switch sub_run_cmd2
+
+            this->_pos_usl = (data[12] << 8) + data[13];
+            this->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
+            ESP_LOGD(TAG, "Условное положение ворот: %d, положение в %%: %f", _pos_usl, (_pos_usl - _pos_cls) * 100.0f / (_pos_opn - _pos_cls));
+            this->publish_state();  // публикуем состояние
+
+            break; //STA
+
+
+
+
+
+          default: // sub_inf_cmd
+            ESP_LOGI(TAG,  "Подменю %X", data[10] );
+        }  // switch sub_inf_cmd
+
+        break; // Пакет контроллера привода
+      case CONTROL:
+        ESP_LOGI(TAG,  "Пакет CONTROL" );
+        break; // CONTROL
+      case FOR_ALL:
+        ESP_LOGI(TAG,  "Пакет для всех" );
+        break; // FOR_ALL
+      case 0x0A:
+        ESP_LOGI(TAG,  "Пакет приёмника" );
+        break; // пакет приёмника
+      default: // cmd_mnu
+        ESP_LOGI(TAG,  "Меню %X", data[9] );
+    }  // switch  cmd_mnu
+
+
+  } // else
+
+
+  ///////////////////////////////////////////////////////////////////////////////////
+
+
+  // RSP ответ (ReSPonce) на простой прием команды CMD, а не ее выполнение. Также докладывает о завершении операции.
+  /* if ((data[1] == 0x0E) && (data[6] == CMD) && (data[9] == FOR_CU) && (data[10] == CUR_MAN) && (data[12] == 0x19)) { // узнаём пакет статуса по содержимому в определённых байтах
+     //  ESP_LOGD(TAG, "Получен пакет RSP. cmd = %#x", data[11]);
+
+     switch (data[11]) {
+       case OPENING:
+         this->current_operation = COVER_OPERATION_OPENING;
+         ESP_LOGD(TAG, "Статус: Открывается");
+         break;
+       case CLOSING:
+         this->current_operation = COVER_OPERATION_CLOSING;
+         ESP_LOGD(TAG, "Статус: Закрывается");
+         break;
+       case OPENED:
+         this->position = COVER_OPEN;
+         ESP_LOGD(TAG, "Статус: Открыто");
+         this->current_operation = COVER_OPERATION_IDLE;
+         break;
+
+
+       case CLOSED:
+         this->position = COVER_CLOSED;
+         ESP_LOGD(TAG, "Статус: Закрыто");
+         this->current_operation = COVER_OPERATION_IDLE;
+         break;
+       case STOPPED:
+         this->current_operation = COVER_OPERATION_IDLE;
+         ESP_LOGD(TAG, "Статус: Остановлено");
+         break;
+
+     }  // switch
+
+     this->publish_state();  // публикуем состояние
+
+    } //if
+  */
+  /*
+    // статус после достижения концевиков
+    if ((data[1] == 0x0E) && (data[6] == CMD) && (data[9] == FOR_CU) && (data[10] == CUR_MAN) &&  (data[12] == 0x00)) { // узнаём пакет статуса по содержимому в определённых байтах
+      ESP_LOGD(TAG, "Получен пакет концевиков. Статус = %#x", data[11]);
+      switch (data[11]) {
+        case OPENED:
+          this->position = COVER_OPEN;
+          ESP_LOGD(TAG, "Статус: Открыто");
+          this->current_operation = COVER_OPERATION_IDLE;
+          break;
+        case CLOSED:
+          this->position = COVER_CLOSED;
+          ESP_LOGD(TAG, "Статус: Закрыто");
+          this->current_operation = COVER_OPERATION_IDLE;
+          break;
+        case OPENING:
+          this->current_operation = COVER_OPERATION_OPENING;
+          ESP_LOGD(TAG, "Статус: Открывается");
+          break;
+        case CLOSING:
+          this->current_operation = COVER_OPERATION_CLOSING;
+          ESP_LOGD(TAG, "Статус: Закрывается");
+          break;
+      } //switch
+      this->publish_state();  // публикуем состояние
+    } //if
+  */
+  // STA = 0x40,   // статус в движении
+  /*
+    if ((data[1] == 0x0E) && (data[6] == CMD) && (data[9] == FOR_CU) && (data[10] == STA) ) { // узнаём пакет статуса по содержимому в определённых байтах
+      uint16_t ipos = (data[12] << 8) + data[13];
+      ESP_LOGD(TAG, "Текущий маневр: %#X Позиция: %#X %#X, ipos = %#x,", data[11], data[12], data[13], ipos);
+      this->position = ipos / 2100.0f; // передаем позицию компоненту
+
+      switch (data[11]) {
+        case OPENING:
+          this->current_operation = COVER_OPERATION_OPENING;
+          ESP_LOGD(TAG, "Статус: Открывается");
+          break;
+
+        case OPENING2:
+          this->current_operation = COVER_OPERATION_OPENING;
+          ESP_LOGD(TAG, "Статус: Открывается");
+          break;
+
+        case CLOSING:
+          this->current_operation = COVER_OPERATION_CLOSING;
+          ESP_LOGD(TAG, "Статус: Закрывается");
+          break;
+        case CLOSING2:
+          this->current_operation = COVER_OPERATION_CLOSING;
+          ESP_LOGD(TAG, "Статус: Закрывается");
+          break;
+        case OPENED:
+          this->position = COVER_OPEN;
+          this->current_operation = COVER_OPERATION_IDLE;
+          ESP_LOGD(TAG, "Статус: Открыто");
+          //      this->current_operation = COVER_OPERATION_OPENING;
+          //    ESP_LOGD(TAG, "Статус: Открывается");
+          break;
+        case CLOSED:
+          this->position = COVER_CLOSED;
+          this->current_operation = COVER_OPERATION_IDLE;
+          ESP_LOGD(TAG, "Статус: Закрыто");
+          //      this->current_operation = COVER_OPERATION_CLOSING;
+          //ESP_LOGD(TAG, "Статус: Закрывается");
+          break;
+        case STOPPED:
+          this->current_operation = COVER_OPERATION_IDLE;
+          ESP_LOGD(TAG, "Статус: Остановлено");
+          break;
+
+      }  // switch
+
+      this->publish_state();  // публикуем состояние
+
+    } //if
+  */
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////
+} // function
+
 }  // namespace nice_bust4
 }  // namespace esphome
