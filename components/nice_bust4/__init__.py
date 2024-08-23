@@ -10,6 +10,7 @@ MULTI_CONF = True
 CONF_NICEBUST4_ID = "nice_bust4_id"
 
 nice_bust4_ns = cg.esphome_ns.namespace("nice_bust4")
+
 NiceBusT4 = nice_bust4_ns.class_(
     "NiceBusT4", cg.Component, uart.UARTDevice, cover.Cover
 #    "NiceBusT4", cg.Component, uart.IDFUARTComponent, cover.Cover
@@ -17,7 +18,7 @@ NiceBusT4 = nice_bust4_ns.class_(
 
 NICEBUST4_COMPONENT_SCHEMA = cv.Schema(
     {
-        
+        cv.Required(CONF_NICEBUST4_ID): cv.use_id(NiceBusT4),
     }
 )
 
