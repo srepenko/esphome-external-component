@@ -316,7 +316,7 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     bool alwayscls_flag; // Всегда закрывать - L3
     bool init_ok = false; //  определение привода при включении
     bool is_walky = false; // для walky отличается команда запроса положения
-    
+
     void setup() override;
     void loop() override;
     void dump_config() override;
@@ -360,8 +360,8 @@ class NiceBusT4 : public uart::IDFUARTComponent{
 	
 
     std::vector<uint8_t> rx_message_;                          // здесь побайтно накапливается принятое сообщение
-//    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
-//    bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
+    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
+    bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
 	
     
     void parse_status_packet (const std::vector<uint8_t> &data); // разбираем пакет статуса
