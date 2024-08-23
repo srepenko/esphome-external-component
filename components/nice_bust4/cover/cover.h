@@ -24,7 +24,8 @@ class NiceBusT4Cover : public Component, public Cover{
     void loop() override;
     void dump_config() override; // для вывода в лог информации об оборудовнии
     void set_parent(NiceBusT4 *const parent) { this->parent_ = parent; }
-
+    cover::CoverTraits get_traits() override;
+    
   protected:
     void control(const cover::CoverCall &call) override;
     NiceBusT4 *parent_;
