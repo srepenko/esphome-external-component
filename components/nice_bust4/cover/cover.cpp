@@ -66,6 +66,20 @@ void NiceBusT4Cover::setup() {
 
 void NiceBusT4Cover::loop() {
 
+    if ((millis() - this->last_update_) > 5000) {    // каждые 10 секунд   
+// если привод не определился с первого раза, попробуем позже
+        std::vector<uint8_t> unknown = {0x55, 0x55};
+        if (this->init_ok == false) {
+          this->tx_buffer_.push(gen_inf_cmd(0x00, 0xff, FOR_ALL, WHO, GET, 0x00));
+          this->tx_buffer_.push(gen_inf_cmd(0x00, 0xff, FOR_ALL, PRD, GET, 0x00)); //запрос продукта
+        }        
+        else if (this->class_gate_ == 0x55) init_device((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), 0x04);  
+        else if (this->manufacturer_ == unknown)  {
+         init_device((uint8_t)(this->to_addr >> 8), (uint8_t)(this->to_addr & 0xFF), 0x04);  
+        }
+        this->last_update_ = millis();
+    }  // if  каждую минуту
+
 
 
   // разрешаем отправку каждые 100 ms
@@ -75,23 +89,29 @@ void NiceBusT4Cover::loop() {
     this->last_uart_byte_ = now;
   }
 
-
+  int length = 0;
+  ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
+  if (length > 0) {
+        length = uart_read_bytes(lin_uart_num, data, length, 100);
+        std::string pretty_cmd1 = format_hex_pretty(data, length);
+        ESP_LOGI(TAG,  "Входящие данные: %S ", pretty_cmd1.c_str() );
+        ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
+  }
   //while (uart_rx_available(_uart) > 0) {
-  while (Serial1.available() > 0) {
-    uint8_t c = Serial1.read();                // считываем байт
-    this->handle_char_(c);                                     // отправляем байт на обработку
-    this->last_uart_byte_ = now;
-  } //while
+  //while (Serial1.available() > 0) {
+  //  uint8_t c = Serial1.read();                // считываем байт
+  //  this->handle_char_(c);                                     // отправляем байт на обработку
+  //  this->last_uart_byte_ = now;
+  //} //while
 
   if (this->ready_to_tx_) {   // если можно отправлять
-    if (!this->tx_buffer_.empty()) {  // если есть что отправлять
-      this->send_array_cmd(this->tx_buffer_.front()); // отправляем первую команду в очереди
-      this->tx_buffer_.pop();
-      this->ready_to_tx_ = false;
-    }
+      if (!this->tx_buffer_.empty()) {  // если есть что отправлять
+        this->send_array_cmd(this->tx_buffer_.front()); // отправляем первую команду в очереди
+        this->tx_buffer_.pop();
+        this->ready_to_tx_ = false;
+      }
   }
-
-
+}
 } //loop
 
 
