@@ -18,6 +18,11 @@ class NiceBusT4 : public uart::IDFUARTComponent{
   protected:
 //    void send_command_(const uint8_t *data, uint8_t len);
 
+
+    std::vector<uint8_t> rx_message_;                          // здесь побайтно накапливается принятое сообщение
+    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
+    bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
+	
     uint32_t update_interval_{500};
     uint32_t last_update_{0};
     uint32_t last_uart_byte_{0};
@@ -28,7 +33,7 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     void handle_char_(uint8_t c);                                         // обработчик полученного байта
     bool validate_message_();                                         // функция проверки полученного сообщения
     std::vector<uint8_t> rx_message_;                          // здесь побайтно накапливается принятое сообщение
-    
+
     uint32_t last_update;
 };
 
