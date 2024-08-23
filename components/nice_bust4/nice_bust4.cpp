@@ -11,6 +11,7 @@ void NiceBusT4::setup() {
 }
 
 void NiceBusT4::loop() {
+    /*
     uint8_t data[128];
     int length = 0;
     ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
@@ -59,7 +60,7 @@ void NiceBusT4::loop() {
             
         }
     }
-
+*/
 }
 
 void NiceBusT4::dump_config(){
