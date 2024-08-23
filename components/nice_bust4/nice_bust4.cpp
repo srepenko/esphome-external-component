@@ -47,7 +47,7 @@ void NiceBusT4::loop() {
         }
         return;
     }
-    /*
+    
     if (this->ready_to_tx_) {   // если можно отправлять
       if (!this->tx_buffer_.empty()) {  // если есть что отправлять
         this->send_array_cmd(this->tx_buffer_.front()); // отправляем первую команду в очереди
@@ -55,7 +55,7 @@ void NiceBusT4::loop() {
         this->ready_to_tx_ = false;
       }
     }
-    */
+    
 }
 
 void NiceBusT4::dump_config(){
