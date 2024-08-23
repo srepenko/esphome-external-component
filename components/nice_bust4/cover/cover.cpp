@@ -103,13 +103,6 @@ void NiceBusT4Cover::loop() {
     return;
   }
   
-  //while (uart_rx_available(_uart) > 0) {
-  //while (Serial1.available() > 0) {
-  //  uint8_t c = Serial1.read();                // считываем байт
-  //  this->handle_char_(c);                                     // отправляем байт на обработку
-  //  this->last_uart_byte_ = now;
-  //} //while
-
   if (this->ready_to_tx_) {   // если можно отправлять
       if (!this->tx_buffer_.empty()) {  // если есть что отправлять
         this->send_array_cmd(this->tx_buffer_.front()); // отправляем первую команду в очереди
