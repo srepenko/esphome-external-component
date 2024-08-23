@@ -17,7 +17,7 @@ class NiceBusT4 : public Component, public uart::UARTDevice{
   protected:
     uint32_t last_update;
     //uart::IDFUARTComponent 
-    uint8_t uart_;
+    uint8_t uart_num_;
 };
 
 
