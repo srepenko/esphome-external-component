@@ -28,7 +28,7 @@ void NiceBusT4Cover::control(const CoverCall &call) {
       this->parent_->gen_inf_cmd_(FOR_CU, CUR_POS, GET, 0x00, {0x01}, 1);  // запрос текущей позиции для энкодера
     }
     else {
-      this->parent_->gen_inf_cmd(FOR_CU, CUR_POS, GET);    // запрос условного текущего положения привода
+      this->parent_->gen_inf_cmd_(FOR_CU, CUR_POS, GET);    // запрос условного текущего положения привода
     }
     
 
