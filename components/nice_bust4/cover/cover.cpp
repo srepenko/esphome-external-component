@@ -4,7 +4,7 @@
 #include "esphome/components/uart/uart.h"
 
 namespace esphome {
-namespace bus_t4 {
+namespace nice_bust4 {
 
 static const char *TAG = "NiceBusT4Cover";
 
@@ -980,5 +980,5 @@ void NiceBusT4Cover::init_device (const uint8_t addr1, const uint8_t addr2, cons
 
 
 
-}  // namespace bus_t4
+}  // namespace nice_bust4
 }  // namespace esphome
