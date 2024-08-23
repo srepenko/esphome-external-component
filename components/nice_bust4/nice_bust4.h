@@ -16,6 +16,7 @@ class NiceBusT4 : public Component, public uart::UARTDevice{
     void dump_config() override;
   protected:
     uint32_t last_update;
+    uart::IDFUARTComponent uart_;
 };
 
 
