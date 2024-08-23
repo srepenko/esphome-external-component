@@ -8,7 +8,6 @@ namespace nice_bust4 {
 static const char *TAG = "NiceBusT4Cover";
 
 using namespace esphome::cover;
-using namespace NiceBusT4;
 
 CoverTraits NiceBusT4Cover::get_traits() {
   auto traits = CoverTraits();
