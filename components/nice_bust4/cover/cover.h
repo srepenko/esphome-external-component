@@ -56,7 +56,7 @@ BusT4                       ESP8266
 
 
 namespace esphome {
-namespace bus_t4 {
+namespace nice_bust4 {
 
 /* для короткого обращения к членам класса */
 using namespace esphome::cover;
@@ -370,7 +370,7 @@ struct packet_rsp_body_t {
 
 
 // создаю класс, наследую членов классов Component и Cover
-class NiceBusT4 : public Component, public Cover{
+class NiceBusT4Cover : public Component, public Cover{
 //class NiceBusT4 : public uart::UARTDevice, public Component, public Cover {
   public:
 	
@@ -482,5 +482,5 @@ class NiceBusT4 : public Component, public Cover{
 
 }; //класс
 
-} // namespace bus_t4
+} // namespace nice_bust4
 } // namespace esphome
