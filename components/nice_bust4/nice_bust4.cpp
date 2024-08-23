@@ -21,7 +21,7 @@ void NiceBusT4::loop() {
         ESP_LOGI(TAG,  "Входящие данные: %S ", pretty_cmd1.c_str() );
         for (int i=0; i< length; ++i) {
             //this->handle_char_(data[i]);
-            //this->last_uart_byte_ = now;
+            this->last_uart_byte_ = now;
         }
         return;
     }
