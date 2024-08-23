@@ -20,7 +20,7 @@ NICEBUST4_SCHEMA = cv.Schema(
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema({cv.GenerateID(): cv.declare_id(NiceBusT4)})
-    .extend(cv.polling_component_schema("1000ms"))
+    #.extend(cv.polling_component_schema("1000ms"))
     .extend(uart.UART_DEVICE_SCHEMA)
 )
 
