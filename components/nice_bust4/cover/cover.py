@@ -14,9 +14,7 @@ NICE_COVER_SCHEMA = cover.COVER_SCHEMA.extend({
     cv.Optional(CONF_UPDATE_INTERVAL): cv.positive_time_period_milliseconds,
 }).extend(cv.COMPONENT_SCHEMA)
 
-CONFIG_SCHEMA = NICEBUST4_COMPONENT_SCHEMA.extend(
-    {cv.Optional(type): CONFIG_SCHEMA for type in TYPES}
-)
+CONFIG_SCHEMA = NICEBUST4_COMPONENT_SCHEMA.extend(cv.NICE_COVER_SCHEMA)
         
 async def to_code(config):
     paren = await cg.get_variable(config[CONF_NICEBUST4_ID])
