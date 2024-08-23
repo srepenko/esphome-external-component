@@ -357,13 +357,7 @@ class NiceBusT4 : public uart::IDFUARTComponent{
 //    std::queue<std::vector<uint8_t>> tx_buffer_;             // очередь команд для отправки	
 //    bool ready_to_tx_{true};	                           // флаг возможности отправлять команды
 	
-    uint32_t update_interval_{500};
-    uint32_t last_update_{0};
-    uint32_t last_uart_byte_{0};
-
-    uint8_t last_published_op_;
-    float last_published_pos_;
-
+    
     void parse_status_packet (const std::vector<uint8_t> &data); // разбираем пакет статуса
 
     void handle_char_(uint8_t c);                                         // обработчик полученного байта
