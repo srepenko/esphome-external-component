@@ -62,6 +62,27 @@ void NiceBusT4::dump_config(){
     ESP_LOGCONFIG(TAG, "NiceBusT4");
 }
 
+void NiceBusT4Cover::send_array_cmd (std::vector<uint8_t> data) {          // отправляет break + подготовленную ранее в массиве команду
+  return send_array_cmd((const uint8_t *)data.data(), data.size());
+}
+void NiceBusT4Cover::send_array_cmd (const uint8_t *data, size_t len) {
+  // отправка данных в uart
+  /*
+  uint8_t dummy = 0x00;
+  uart_flush_input(this->parent_->uart_num_);
+  uart_get_baudrate(this->parent_->uart_num_, &baudrate);
+  #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
+  uart_set_baudrate(this->parent_->uart_num_, LIN_BREAK_BAUDRATE(baudrate));
+  uart_write_bytes(this->parent_->uart_num_, (char *)&dummy, 1);              // send a zero byte.  This call must be blocking.
+  uart_wait_tx_done(this->parent_->uart_num_, 2);                             // shouldn't be necessary??
+  uart_wait_tx_done(this->parent_->uart_num_, 2);                             // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
+  uart_set_baudrate(this->parent_->uart_num_, baudrate);                      // set baudrate back to normal after break is sent
+  uart_write_bytes(this->parent_->uart_num_, data, len);
+  std::string pretty_cmd = format_hex_pretty((uint8_t*)&data[0], len);                    // для вывода команды в лог
+  ESP_LOGI(TAG,  "Отправлено: %S ", pretty_cmd.c_str() );
+  */
+}
+
 void NiceBusT4::handle_char_(uint8_t c) {
   this->rx_message_.push_back(c);                      // кидаем байт в конец полученного сообщения
   if (!this->validate_message_()) {                    // проверяем получившееся сообщение
