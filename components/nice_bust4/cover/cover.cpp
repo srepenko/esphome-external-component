@@ -1,5 +1,6 @@
 #include "cover.h"
 #include "esphome/core/log.h"
+#include "../nice_bust4.h"
 
 
 namespace esphome {
