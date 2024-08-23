@@ -6,9 +6,6 @@
 #include "esphome/components/cover/cover.h"
 #include "esphome/core/helpers.h"              // парсим строки встроенными инструментами
 
-
-
-
 namespace esphome {
 namespace nice_bust4 {
 class NiceBusT4;
