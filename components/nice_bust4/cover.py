@@ -7,7 +7,7 @@ DEPENDENCIES = ["nice_bust4"]
 
 from .. import CONF_NICEBUST4_ID, NICEBUST4_COMPONENT_SCHEMA, nice_bust4_ns
 
-Nice = nice_bust4_ns.class_('NiceBusT4', cover.Cover, cg.Component)
+Nice = nice_bust4_ns.class_('NiceBusT4Cover', cover.Cover, cg.Component)
 
 NICE_COVER_SCHEMA = cover.COVER_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(Nice),
