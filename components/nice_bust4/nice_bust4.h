@@ -27,6 +27,8 @@ class NiceBusT4 : public uart::IDFUARTComponent{
 
     void handle_char_(uint8_t c);                                         // обработчик полученного байта
     bool validate_message_();                                         // функция проверки полученного сообщения
+    std::vector<uint8_t> rx_message_;                          // здесь побайтно накапливается принятое сообщение
+    
     uint32_t last_update;
 };
 
