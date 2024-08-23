@@ -9,6 +9,7 @@ namespace esphome {
 namespace nice_bust4 {
 //#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
 
+static const uint8_t START_CODE = 0x55; /*стартовый байт пакета */
 
 //class NiceBusT4 : public Component, public uart::UARTDevice{
 class NiceBusT4 : public uart::IDFUARTComponent{
