@@ -20,7 +20,7 @@ void NiceBusT4Cover::control(const CoverCall &call) {
   
   if (call.get_stop()) {
     // uint8_t data[2] = {CONTROL, STOP};
-    tx_buffer_.push(gen_control_cmd(STOP));
+    this>parent_->tx_buffer_.push(gen_control_cmd(STOP));
     /*
     tx_buffer_.push(gen_inf_cmd(FOR_CU, INF_STATUS, GET));   //Состояние ворот (Открыто/Закрыто/Остановлено)
     if (is_walky) {
