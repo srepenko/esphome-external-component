@@ -15,10 +15,10 @@ void NiceBusT4::loop() {
     uint8_t data[128];
     int length = 0;
     this->uart_num_ = this->uart_.get_hw_serial_number();
-    ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
-/*
+    uint8_t lin_uart_num = this->uart_num_;
+    ESP_ERROR_CHECK(uart_get_buffered_data_len(lin_uart_num, (size_t*)&length));
     if (length > 0) {
-        length = uart_read_bytes(this->uart_num_, data, length, 100);
+        length = uart_read_bytes(lin_uart_num, data, length, 100);
         //"%02X"
         //ESP_LOGCONFIG(TAG, "%d", length);
         std::string pretty_cmd1 = format_hex_pretty(data, length);
@@ -46,7 +46,6 @@ void NiceBusT4::loop() {
         //    master_tx_buf[0] = 0x55; // sync byte
         //    master_tx_buf[1] = 0x77;
             uint8_t dummy = 0x00;
-            uint8_t lin_uart_num = this->uart_num_;
             uart_flush_input(lin_uart_num);
             uart_get_baudrate(lin_uart_num, &baudrate);
             #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 9)
@@ -62,7 +61,6 @@ void NiceBusT4::loop() {
             
         }
     }
-*/
 }
 
 void NiceBusT4::dump_config(){
