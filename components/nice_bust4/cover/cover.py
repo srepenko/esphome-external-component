@@ -7,13 +7,16 @@ from .. import CONF_NICEBUST4_ID, NICEBUST4_COMPONENT_SCHEMA, nice_bust4_ns
 
 Nice = nice_bust4_ns.class_('NiceBusT4', cover.Cover, cg.Component)
 
-CONFIG_SCHEMA = NICEBUST4_COMPONENT_SCHEMA.extend({
+NICE_COVER_SCHEMA = cover.COVER_SCHEMA.extend({
     cv.GenerateID(): cv.declare_id(Nice),
     cv.Optional(CONF_ADDRESS): cv.hex_uint16_t,
     cv.Optional(CONF_USE_ADDRESS): cv.hex_uint16_t,
     cv.Optional(CONF_UPDATE_INTERVAL): cv.positive_time_period_milliseconds,
 }).extend(cv.COMPONENT_SCHEMA)
 
+CONFIG_SCHEMA = NICEBUST4_COMPONENT_SCHEMA.extend(
+    {cv.Optional(type): CONFIG_SCHEMA for type in TYPES}
+)
         
 async def to_code(config):
     paren = await cg.get_variable(config[CONF_NICEBUST4_ID])
