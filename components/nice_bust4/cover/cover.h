@@ -373,7 +373,7 @@ struct packet_rsp_body_t {
 class NiceBusT4Cover : public Component, public Cover{
 //class NiceBusT4 : public uart::UARTDevice, public Component, public Cover {
   public:
-	
+	void set_parent(Inverter *const parent) { this->parent_ = parent; }
     // настройки привода
     bool autocls_flag; // Автозакрывание - L1
     bool photocls_flag; // Закрыть после фото - L2
@@ -479,7 +479,7 @@ class NiceBusT4Cover : public Component, public Cover{
     std::vector<uint8_t> oxi_hardware;
     std::vector<uint8_t> oxi_firmware;
     std::vector<uint8_t> oxi_description;	
-
+    NiceBusT4 *parent_;
 }; //класс
 
 } // namespace nice_bust4
