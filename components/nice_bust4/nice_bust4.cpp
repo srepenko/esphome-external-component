@@ -237,7 +237,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
               break; // 0x00
             case 0x01:
               ESP_LOGI(TAG, "  Концевик на закрытие ");
-              this->position = COVER_CLOSED;
+              this->cover_->position = COVER_CLOSED;
               break; //  0x01
             case 0x02:
               ESP_LOGI(TAG, "  Концевик на открытие ");
