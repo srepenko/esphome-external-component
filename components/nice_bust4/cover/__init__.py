@@ -34,3 +34,4 @@ async def to_code(config):
         use_address = config[CONF_USE_ADDRESS]
         cg.add(var.set_from_address(use_address))
     
+    cg.add(paren.register_cover(var))
