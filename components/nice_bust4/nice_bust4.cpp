@@ -73,12 +73,12 @@ void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
   uint8_t dummy = 0x00;
   uart_flush_input(this->uart_num_);
   uart_get_baudrate(this->uart_num_, &baudrate);
-  #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 18)
+  #define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
   uart_set_baudrate(this->uart_num_, LIN_BREAK_BAUDRATE(baudrate));
   uart_write_bytes(this->uart_num_, (char *)&dummy, 1);              // send a zero byte.  This call must be blocking.
-  //uart_wait_tx_done(this->uart_num_, 2);                             // shouldn't be necessary??
-  //uart_wait_tx_done(this->uart_num_, 2);                             // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
-  delayMicroseconds(90);
+  uart_wait_tx_done(this->uart_num_, 2);                             // shouldn't be necessary??
+  uart_wait_tx_done(this->uart_num_, 2);                             // add 2nd uart_wait_tx_done per https://esp32.com/viewtopic.php?p=98456#p98456
+  //delayMicroseconds(90);
   uart_set_baudrate(this->uart_num_, baudrate);                      // set baudrate back to normal after break is sent
   uart_write_bytes(this->uart_num_, data, len);
   std::string pretty_cmd = format_hex_pretty((uint8_t*)&data[0], len);                    // для вывода команды в лог
