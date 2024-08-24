@@ -47,7 +47,7 @@ void NiceBusT4::loop() {
             this->handle_char_(data[i]);
             this->last_uart_byte_ = now;
         }
-        return;
+        
     }
 
     if (this->ready_to_tx_) {   // если можно отправлять
