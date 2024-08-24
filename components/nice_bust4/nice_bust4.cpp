@@ -498,7 +498,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
               default: // sub_run_cmd1
                 ESP_LOGI(TAG,  "Операция: %X", data[11] );                            
             } // switch sub_run_cmd2                 
-            this->publish_state();  // публикуем состояние
+            this->cover_->publish_state();  // публикуем состояние
             break; //RUN
 
           case STA:
@@ -535,7 +535,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
             this->_pos_usl = (data[12] << 8) + data[13];
             this->cover_->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
             ESP_LOGD(TAG, "Условное положение ворот: %d, положение в %%: %f", _pos_usl, (_pos_usl - _pos_cls) * 100.0f / (_pos_opn - _pos_cls));
-            this->publish_state();  // публикуем состояние
+            this->cover_->publish_state();  // публикуем состояние
 
             break; //STA
 
