@@ -320,7 +320,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
               this->cover_->current_operation = COVER_OPERATION_CLOSING;
               break;
           }  // switch
-          this->publish_state();  // публикуем состояние
+          this->cover_->publish_state();  // публикуем состояние
           break;
 
           //      default: // cmd_mnu
