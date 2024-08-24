@@ -453,17 +453,17 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
                 break; // STOP
               case OPEN:
                 ESP_LOGI(TAG,  "Команда: OPEN" );
-                this->current_operation = COVER_OPERATION_OPENING;
+                this->covar_->current_operation = COVER_OPERATION_OPENING;
                 break; // OPEN
               case CLOSE:
                 ESP_LOGI(TAG,  "Команда: CLOSE" );
-                this->current_operation = COVER_OPERATION_CLOSING;                
+                this->covar_->current_operation = COVER_OPERATION_CLOSING;                
                 break;  // CLOSE
               case P_OPN1:
                 ESP_LOGI(TAG,  "Команда: Частичное открывание" );
                 break; // P_OPN1
               case STOPPED:
-                this->current_operation = COVER_OPERATION_IDLE;
+                this->covar_->current_operation = COVER_OPERATION_IDLE;
                 ESP_LOGI(TAG, "Команда: Остановлено");
                 break; // STOPPED
               case ENDTIME:
@@ -475,7 +475,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
             switch (data[11]) { // sub_run_cmd2
               case STA_OPENING:
                 ESP_LOGI(TAG,  "Операция: Открывается" );
-                this->current_operation = COVER_OPERATION_OPENING;
+                this->covar_->current_operation = COVER_OPERATION_OPENING;
                 break; // OPEN
               case STA_CLOSING:
                 ESP_LOGI(TAG,  "Операция: Закрывается" );
