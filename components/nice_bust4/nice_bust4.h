@@ -318,7 +318,7 @@ struct packet_rsp_body_t {
 
 //class NiceBusT4 : public Component, public uart::UARTDevice{
 class NiceBusT4 : public uart::IDFUARTComponent{
-#ifdef USE_SENSOR
+#ifdef USE_COVER
   protected:
     cover::Cover *> cover_;
   public:
