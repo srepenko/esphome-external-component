@@ -88,7 +88,6 @@ void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
 
 void NiceBusT4::handle_char_(uint8_t c) {
   this->rx_message_.push_back(c);                      // кидаем байт в конец полученного сообщения
-  ESP_LOGI(TAG,  "%02x", c);
   if (!this->validate_message_()) {                    // проверяем получившееся сообщение
     this->rx_message_.clear();                         // если проверка не прошла, то в сообщении мусор, нужно удалить
   }
@@ -98,6 +97,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   uint32_t at = this->rx_message_.size() - 1;       // номер последнего полученного байта
   uint8_t *data = &this->rx_message_[0];               // указатель на первый байт сообщения
   uint8_t new_byte = data[at];                      // последний полученный байт
+  ESP_LOGI(TAG,  "%02x", new_byte);
   // Byte 0: HEADER1 (всегда 0x00)
   if (at == 0x00)
     return new_byte == 0x00;
