@@ -12,7 +12,7 @@ void NiceBusT4::setup() {
 }
 
 void NiceBusT4::loop() {
-/*    if ((millis() - this->last_update_) > 5000) {    // каждые 10 секунд   
+    if ((millis() - this->last_update_) > 5000) {    // каждые 10 секунд   
     // если привод не определился с первого раза, попробуем позже
         std::vector<uint8_t> unknown = {0x55, 0x55};
         if (this->init_ok == false) {
@@ -28,14 +28,14 @@ void NiceBusT4::loop() {
 
 
     // разрешаем отправку каждые 100 ms
-  */
+  
     const uint32_t now = millis();
-  /*
+  
     if (now - this->last_uart_byte_ > 100) {
         this->ready_to_tx_ = true;
         this->last_uart_byte_ = now;
     }
-  */  
+   
     uint8_t data[128];
     int length = 0;
     ESP_ERROR_CHECK(uart_get_buffered_data_len(this->uart_num_, (size_t*)&length));
@@ -49,7 +49,7 @@ void NiceBusT4::loop() {
         }
         return;
     }
-/*
+
     if (this->ready_to_tx_) {   // если можно отправлять
       if (!this->tx_buffer_.empty()) {  // если есть что отправлять
         this->send_array_cmd(this->tx_buffer_.front()); // отправляем первую команду в очереди
@@ -57,7 +57,7 @@ void NiceBusT4::loop() {
         this->ready_to_tx_ = false;
       }
     }
-*/        
+
 }
 
 void NiceBusT4::dump_config(){
