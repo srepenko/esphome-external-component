@@ -320,7 +320,7 @@ struct packet_rsp_body_t {
 class NiceBusT4 : public uart::IDFUARTComponent{
 #ifdef USE_COVER
   protected:
-    cover::Cover *> cover_;
+    cover::Cover * cover_;
   public:
     void register_cover(cover::Cover *obj) { this->cover_ = obj; }
 #endif
