@@ -296,16 +296,16 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
             case CLOSED:
               ESP_LOGI(TAG, "  Ворота закрыты");
               this->cover_->position = COVER_CLOSED;
-              this->current_operation = COVER_OPERATION_IDLE;
+              this->cover_->current_operation = COVER_OPERATION_IDLE;
               break;
             case 0x01:
               ESP_LOGI(TAG, "  Ворота остановлены");
-              this->current_operation = COVER_OPERATION_IDLE;
+              this->cover_->current_operation = COVER_OPERATION_IDLE;
               //          this->position = COVER_OPEN;
               break;
             case 0x00:
               ESP_LOGI(TAG, "  Статус ворот неизвестен");
-              this->current_operation = COVER_OPERATION_IDLE;
+              this->cover_->current_operation = COVER_OPERATION_IDLE;
               break;
              case 0x0b:
               ESP_LOGI(TAG, "  Поиск положений сделан");
