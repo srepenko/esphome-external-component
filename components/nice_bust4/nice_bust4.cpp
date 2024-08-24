@@ -187,7 +187,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
 
 }
 
-/*
+
 void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
   if ((data[1] == 0x0d) && (data[13] == 0xFD)) { // ошибка
     ESP_LOGE(TAG,  "Команда недоступна для этого устройства" );
@@ -569,7 +569,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
 
 
   // RSP ответ (ReSPonce) на простой прием команды CMD, а не ее выполнение. Также докладывает о завершении операции.
-  /+ if ((data[1] == 0x0E) && (data[6] == CMD) && (data[9] == FOR_CU) && (data[10] == CUR_MAN) && (data[12] == 0x19)) { // узнаём пакет статуса по содержимому в определённых байтах
+  /* if ((data[1] == 0x0E) && (data[6] == CMD) && (data[9] == FOR_CU) && (data[10] == CUR_MAN) && (data[12] == 0x19)) { // узнаём пакет статуса по содержимому в определённых байтах
      //  ESP_LOGD(TAG, "Получен пакет RSP. cmd = %#x", data[11]);
 
      switch (data[11]) {
@@ -681,12 +681,12 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
       this->publish_state();  // публикуем состояние
 
     } //if
-  +/
+  */
 
 
   ////////////////////////////////////////////////////////////////////////////////////////
 } // function
-*/
+
 
 // инициализация устройства
 void NiceBusT4::init_device (const uint8_t addr1, const uint8_t addr2, const uint8_t device ) {
