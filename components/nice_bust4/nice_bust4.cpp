@@ -245,7 +245,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
               break; // 0x02
 
           }  // switch 16
-          this->publish_state();  // публикуем состояние
+          this->cover_->publish_state();  // публикуем состояние
 
           break; //  INF_IO
 
