@@ -97,7 +97,6 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   uint32_t at = this->rx_message_.size() - 1;       // номер последнего полученного байта
   uint8_t *data = &this->rx_message_[0];               // указатель на первый байт сообщения
   uint8_t new_byte = data[at];                      // последний полученный байт
-  //ESP_LOGI(TAG,  "%02x %d", new_byte, at);
   // Byte 0: HEADER1 (всегда 0x00)
   if (at == 0)
     return new_byte == 0x00;
@@ -108,8 +107,10 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   // Byte 2: packet_size - количество байт дальше + 1
   // Проверка не проводится
 
-  if (at == 2)
+  if (at == 2) {
+    ESP_LOGI(TAG,  "%02x %d", new_byte, at);
     return true;
+  }
   uint8_t packet_size = data[2];
   uint8_t length = (packet_size + 3); // длина ожидаемого сообщения понятна
 
