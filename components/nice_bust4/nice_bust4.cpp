@@ -99,7 +99,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   uint8_t new_byte = data[at];                      // последний полученный байт
   ESP_LOGI(TAG,  "%02x %d", new_byte, at);
   // Byte 0: HEADER1 (всегда 0x00)
-  if (at == 0x00)
+  if (at == 0)
     return new_byte == 0x00;
   // Byte 1: HEADER2 (всегда 0x55)
   if (at == 1)
