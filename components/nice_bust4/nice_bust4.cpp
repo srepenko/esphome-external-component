@@ -107,10 +107,8 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   // Byte 2: packet_size - количество байт дальше + 1
   // Проверка не проводится
 
-  if (at == 2) {
-    ESP_LOGI(TAG,  "%02x %d", new_byte, at);
+  if (at == 2) 
     return true;
-  }
   uint8_t packet_size = data[2];
   uint8_t length = (packet_size + 3); // длина ожидаемого сообщения понятна
 
