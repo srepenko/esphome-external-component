@@ -241,7 +241,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
               break; //  0x01
             case 0x02:
               ESP_LOGI(TAG, "  Концевик на открытие ");
-              this->position = COVER_OPEN;
+              this->cover_->position = COVER_OPEN;
               break; // 0x02
 
           }  // switch 16
@@ -281,7 +281,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
           else {
             this->_pos_usl = (data[14] << 8) + data[15];
           }
-          this->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
+          this->cover_->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
           ESP_LOGI(TAG, "Условное положение ворот: %d, положение в %%: %f", _pos_usl, (_pos_usl - _pos_cls) * 100.0f / (_pos_opn - _pos_cls));
           this->publish_state();  // публикуем состояние
           break;
@@ -290,12 +290,12 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
           switch (data[14]) {
             case OPENED:
               ESP_LOGI(TAG, "  Ворота открыты");
-              this->position = COVER_OPEN;
+              this->cover_->position = COVER_OPEN;
               this->current_operation = COVER_OPERATION_IDLE;
               break;
             case CLOSED:
               ESP_LOGI(TAG, "  Ворота закрыты");
-              this->position = COVER_CLOSED;
+              this->cover_->position = COVER_CLOSED;
               this->current_operation = COVER_OPERATION_IDLE;
               break;
             case 0x01:
