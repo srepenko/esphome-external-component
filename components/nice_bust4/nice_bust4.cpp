@@ -47,8 +47,7 @@ void NiceBusT4::loop() {
             uart_read_bytes(this->uart_num_, data, 1, 100);
             this->handle_char_(data[0]);
             this->last_uart_byte_ = now;
-    }
-        
+        //}
     }
 
     if (this->ready_to_tx_) {   // если можно отправлять
