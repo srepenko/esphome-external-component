@@ -90,7 +90,7 @@ void NiceBusT4::handle_char_(uint8_t c) {
   this->rx_message_.push_back(c);                      // кидаем байт в конец полученного сообщения
   if (!this->validate_message_()) {                    // проверяем получившееся сообщение
     this->rx_message_.clear();                         // если проверка не прошла, то в сообщении мусор, нужно удалить
-    ESP_LOGЦ(TAG,  "Ошибка проверки сообщения");
+    ESP_LOGW(TAG,  "Ошибка проверки сообщения");
   }
 }
 
