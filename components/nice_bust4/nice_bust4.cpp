@@ -178,7 +178,7 @@ bool NiceBusT4::validate_message_() {                    // проверка п�
   ESP_LOGI(TAG,  "Получен пакет: %S ", pretty_cmd.c_str() );
 
   // здесь что-то делаем с сообщением
-  //parse_status_packet(rx_message_);
+  parse_status_packet(rx_message_);
 
 
 
