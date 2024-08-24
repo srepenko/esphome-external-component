@@ -6,6 +6,10 @@
 #include "esphome/components/uart/uart_component_esp_idf.h"
 #include <queue>                               // для работы с очередью
 
+#ifdef USE_COVER
+#include "esphome/components/cover/cover.h"
+#endif
+
 namespace esphome {
 namespace nice_bust4 {
 //#define LIN_BREAK_BAUDRATE(BAUD) ((BAUD * 9) / 13)
@@ -20,8 +24,11 @@ static const uint8_t START_CODE = 0x55; /*стартовый байт пакет
 */
 
 
-
-
+//   0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 
+//00 55 0E 00 FF 00 03 01 07 FA 04 02 83 01 8C 8C 84 0E 
+//00 55 0E 00 FF 00 03 01 07 FA 04 02 05 00 12 12 03 0E
+//   55 0c 00 ff 00 66 01 05 9D 01 82 01 64 E6 0c
+//   55.0E.00.03.00.81.08.07.8D.04.0B.A9.00.01.01.A6.0E
 
 
 /* Тип сообщения пакетов
@@ -311,6 +318,12 @@ struct packet_rsp_body_t {
 
 //class NiceBusT4 : public Component, public uart::UARTDevice{
 class NiceBusT4 : public uart::IDFUARTComponent{
+#ifdef USE_SENSOR
+  protected:
+    cover::Cover *> cover_;
+  public:
+    void register_cover(cover::Cover *obj) { this->cover_ = obj; }
+#endif
   public:
     bool autocls_flag; // Автозакрывание - L1
     bool photocls_flag; // Закрыть после фото - L2
