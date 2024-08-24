@@ -88,9 +88,9 @@ void NiceBusT4::send_array_cmd (const uint8_t *data, size_t len) {
 
 void NiceBusT4::handle_char_(uint8_t c) {
   this->rx_message_.push_back(c);                      // кидаем байт в конец полученного сообщения
+  ESP_LOGI(TAG,  "%02x", c);
   if (!this->validate_message_()) {                    // проверяем получившееся сообщение
     this->rx_message_.clear();                         // если проверка не прошла, то в сообщении мусор, нужно удалить
-    ESP_LOGW(TAG,  "Ошибка проверки сообщения");
   }
 }
 
