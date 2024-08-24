@@ -291,7 +291,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
             case OPENED:
               ESP_LOGI(TAG, "  Ворота открыты");
               this->cover_->position = COVER_OPEN;
-              this->current_operation = COVER_OPERATION_IDLE;
+              this->cover_->current_operation = COVER_OPERATION_IDLE;
               break;
             case CLOSED:
               ESP_LOGI(TAG, "  Ворота закрыты");
