@@ -301,7 +301,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
             case 0x01:
               ESP_LOGI(TAG, "  Ворота остановлены");
               this->cover_->current_operation = COVER_OPERATION_IDLE;
-              //          this->position = COVER_OPEN;
+              //          this->cover_->position = COVER_OPEN;
               break;
             case 0x00:
               ESP_LOGI(TAG, "  Статус ворот неизвестен");
@@ -483,11 +483,11 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
                 break;  // CLOSING
               case CLOSED:
                 ESP_LOGI(TAG,  "Операция: Закрыто" );
-                this->position = COVER_CLOSED;
+                this->cover_->position = COVER_CLOSED;
                 this->cover_->current_operation = COVER_OPERATION_IDLE;
                 break;  // CLOSED  
               case OPENED:
-                this->position = COVER_OPEN;
+                this->cover_->position = COVER_OPEN;
                 ESP_LOGI(TAG, "Операция: Открыто");
                 this->cover_->current_operation = COVER_OPERATION_IDLE;
                 break;
@@ -514,11 +514,11 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
                 break; // STA_CLOSING
               case CLOSED:
                 ESP_LOGI(TAG,  "Движение: Закрыто" );
-                this->position = COVER_CLOSED;
+                this->cover_->position = COVER_CLOSED;
                 this->cover_->current_operation = COVER_OPERATION_IDLE;
                 break;  // CLOSED  
               case OPENED:
-                this->position = COVER_OPEN;
+                this->cover_->position = COVER_OPEN;
                 ESP_LOGI(TAG, "Движение: Открыто");
                 this->cover_->current_operation = COVER_OPERATION_IDLE;
                 break;
@@ -533,7 +533,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
             } // switch sub_run_cmd2
 
             this->_pos_usl = (data[12] << 8) + data[13];
-            this->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
+            this->cover_->position = (_pos_usl - _pos_cls) * 1.0f / (_pos_opn - _pos_cls);
             ESP_LOGD(TAG, "Условное положение ворот: %d, положение в %%: %f", _pos_usl, (_pos_usl - _pos_cls) * 100.0f / (_pos_opn - _pos_cls));
             this->publish_state();  // публикуем состояние
 
@@ -582,14 +582,14 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
          ESP_LOGD(TAG, "Статус: Закрывается");
          break;
        case OPENED:
-         this->position = COVER_OPEN;
+         this->cover_->position = COVER_OPEN;
          ESP_LOGD(TAG, "Статус: Открыто");
          this->cover_->current_operation = COVER_OPERATION_IDLE;
          break;
 
 
        case CLOSED:
-         this->position = COVER_CLOSED;
+         this->cover_->position = COVER_CLOSED;
          ESP_LOGD(TAG, "Статус: Закрыто");
          this->cover_->current_operation = COVER_OPERATION_IDLE;
          break;
@@ -610,12 +610,12 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
       ESP_LOGD(TAG, "Получен пакет концевиков. Статус = %#x", data[11]);
       switch (data[11]) {
         case OPENED:
-          this->position = COVER_OPEN;
+          this->cover_->position = COVER_OPEN;
           ESP_LOGD(TAG, "Статус: Открыто");
           this->cover_->current_operation = COVER_OPERATION_IDLE;
           break;
         case CLOSED:
-          this->position = COVER_CLOSED;
+          this->cover_->position = COVER_CLOSED;
           ESP_LOGD(TAG, "Статус: Закрыто");
           this->cover_->current_operation = COVER_OPERATION_IDLE;
           break;
@@ -636,7 +636,7 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
     if ((data[1] == 0x0E) && (data[6] == CMD) && (data[9] == FOR_CU) && (data[10] == STA) ) { // узнаём пакет статуса по содержимому в определённых байтах
       uint16_t ipos = (data[12] << 8) + data[13];
       ESP_LOGD(TAG, "Текущий маневр: %#X Позиция: %#X %#X, ipos = %#x,", data[11], data[12], data[13], ipos);
-      this->position = ipos / 2100.0f; // передаем позицию компоненту
+      this->cover_->position = ipos / 2100.0f; // передаем позицию компоненту
 
       switch (data[11]) {
         case OPENING:
@@ -658,14 +658,14 @@ void NiceBusT4::parse_status_packet (const std::vector<uint8_t> &data) {
           ESP_LOGD(TAG, "Статус: Закрывается");
           break;
         case OPENED:
-          this->position = COVER_OPEN;
+          this->cover_->position = COVER_OPEN;
           this->cover_->current_operation = COVER_OPERATION_IDLE;
           ESP_LOGD(TAG, "Статус: Открыто");
           //      this->cover_->current_operation = COVER_OPERATION_OPENING;
           //    ESP_LOGD(TAG, "Статус: Открывается");
           break;
         case CLOSED:
-          this->position = COVER_CLOSED;
+          this->cover_->position = COVER_CLOSED;
           this->cover_->current_operation = COVER_OPERATION_IDLE;
           ESP_LOGD(TAG, "Статус: Закрыто");
           //      this->cover_->current_operation = COVER_OPERATION_CLOSING;
