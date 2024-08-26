@@ -40,7 +40,7 @@ void NiceBusT4::loop() {
     int length = 0;
     uint8_t c;
     while (this->available ()) {
-       this->peek_byte(c);
+       this->peek_byte(&c);
       this->handle_char_(c);
       this->last_uart_byte_ = now;
     }
