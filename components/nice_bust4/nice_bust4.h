@@ -335,6 +335,11 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     void loop() override;
     void dump_config() override;
 
+    void send_raw_cmd(std::string data);
+    void send_cmd(uint8_t data) {this->tx_buffer_.push(gen_control_cmd(data));}	
+    void send_inf_cmd(std::string to_addr, std::string whose, std::string command, std::string type_command,  std::string next_data, bool data_on, std::string data_command); // длинная команда
+    void set_mcu(std::string command, std::string data_command); // команда контроллеру мотора
+
 
     void gen_control_cmd_(const uint8_t control_cmd){return tx_buffer_.push(gen_control_cmd(control_cmd));}
     void gen_inf_cmd_(const uint8_t whose, const uint8_t inf_cmd, 
