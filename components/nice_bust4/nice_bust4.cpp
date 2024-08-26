@@ -55,7 +55,7 @@ void NiceBusT4::loop() {
 //            this->handle_char_(data[0]);
 //            this->last_uart_byte_ = now;
 //        }
-    }
+//    }
 
     if (this->ready_to_tx_) {   // если можно отправлять
       if (!this->tx_buffer_.empty()) {  // если есть что отправлять
