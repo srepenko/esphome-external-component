@@ -812,5 +812,37 @@ std::vector<uint8_t> NiceBusT4::gen_inf_cmd(const uint8_t to_addr1, const uint8_
 
 }
 
+void NiceBusT4::send_raw_cmd(std::string data) {
+
+  std::vector < uint8_t > v_cmd = raw_cmd_prepare (data);
+  send_array_cmd (&v_cmd[0], v_cmd.size());
+
+}
+
+
+//  Сюда нужно добавить проверку на неправильные данные от пользователя
+std::vector<uint8_t> NiceBusT4::raw_cmd_prepare (std::string data) { // подготовка введенных пользователем данных для возможности отправки
+
+  //  data.erase(remove_if(data.begin(), data.end(), ::isspace), data.end()); //удаляем пробелы
+  data.erase(remove_if(data.begin(), data.end(), [](const unsigned char ch) {
+    return (!(iswalnum(ch)) );
+//    return (!(isalnum(ch)) );
+  }), data.end()); //удаляем всё кроме букв и цифр
+
+  //assert (data.size () % 2 == 0); // проверяем чётность
+  std::vector < uint8_t > frame;
+  frame.resize(0); // обнуляем размер команды
+
+  for (uint8_t i = 0; i < data.size (); i += 2 ) { // заполняем массив команды
+    std::string sub_str(data, i, 2); // берём 2 байта из команды
+    char hexstoi = (char)std::strtol(&sub_str[0], 0 , 16); // преобразуем в число
+    frame.push_back(hexstoi);  // записываем число в элемент  строки  новой команды
+  }
+
+
+  return frame;
+
+}
+
 }  // namespace nice_bust4
 }  // namespace esphome
