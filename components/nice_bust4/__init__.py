@@ -4,7 +4,7 @@ from esphome.components import uart
 from esphome.const import CONF_ID
 
 DEPENDENCIES = ["uart"]
-AUTO_LOAD = ["cover"]
+AUTO_LOAD = ["cover", "button", "switch"]
 MULTI_CONF = True
 
 CONF_NICEBUST4_ID = "nice_bust4_id"
