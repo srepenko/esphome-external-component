@@ -389,9 +389,6 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     std::vector<uint8_t> gen_inf_cmd(const uint8_t to_addr1, const uint8_t to_addr2, const uint8_t whose, const uint8_t inf_cmd, const uint8_t run_cmd, const uint8_t next_data){
 	    return gen_inf_cmd(to_addr1, to_addr2, whose, inf_cmd, run_cmd, next_data, {0x00}, 0);} // для команд с адресом и без данных 	
 
-    // генерация cmd команд
-    std::vector<uint8_t> gen_control_cmd(const uint8_t control_cmd);
-	
     void parse_status_packet (const std::vector<uint8_t> &data); // разбираем пакет статуса
 
     void handle_char_(uint8_t c);                                         // обработчик полученного байта
