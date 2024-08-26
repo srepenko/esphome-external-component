@@ -397,6 +397,9 @@ class NiceBusT4 : public uart::IDFUARTComponent{
     void handle_char_(uint8_t c);                                         // обработчик полученного байта
     bool validate_message_();                                         // функция проверки полученного сообщения
 
+// генерация cmd команд
+    std::vector<uint8_t> gen_control_cmd(const uint8_t control_cmd);	    	
+
     void init_device (const uint8_t addr1, const uint8_t addr2, const uint8_t device );
     void send_array_cmd (std::vector<uint8_t> data);	
     void send_array_cmd (const uint8_t *data, size_t len);
