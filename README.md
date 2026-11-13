@@ -63,3 +63,12 @@ components
 ```
 
 There is an empty `__init__.py` and most of the content goes in a `binary_sensor.py`.
+
+## ESP32-P4 panel components
+
+| Component | Description |
+|---|---|
+| [`gsl3680`](components/gsl3680) | GSL3680 touchscreen driver; touches are read in a dedicated task on interrupt and latched, so short taps are not lost while the main loop is busy |
+| [`mjpeg_stream`](components/mjpeg_stream) | MJPEG over HTTP decoded by the P4 hardware JPEG decoder; LVGL image or direct framebuffer blit via PPA with exclusion zones |
+| [`panel_motion`](components/panel_motion) | Motion detection from the built-in P4 camera to wake the screen |
+| [`esp_video_camera`](components/esp_video_camera) | ESP32-P4 MIPI-CSI camera as a Home Assistant camera (based on Tessera JC8012 camera, esp_video from git master) |

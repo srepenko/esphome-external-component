@@ -1,0 +1,97 @@
+# NOTICE — origin, authorship and licensing of this repository
+
+This repository contains an ESPHome external component, `esp_video_camera`.
+It is a derivative work of ESPHome and is therefore distributed under the
+ESPHome License (see `LICENSE`), which applies the same split ESPHome itself
+uses:
+
+  * C++/runtime sources (`.c`, `.cpp`, `.h`, `.hpp`, `.tcc`, `.ino`) — GPLv3
+  * Python sources and everything else — MIT
+
+Concretely, in this repository:
+
+  * `components/esp_video_camera/esp_video_camera.cpp`
+    `components/esp_video_camera/esp_video_camera.h`
+    `components/esp_video_camera/i2c_helper.h`                        → GPLv3
+  * `components/esp_video_camera/__init__.py`
+    `README.md`, `CHANGELOG.md` and the rest of the repository        → MIT
+
+## Attribution
+
+* Copyright (c) 2019 ESPHome — the component derives from and links against the
+  ESPHome runtime (`esphome/components/camera`, `esphome/components/i2c`,
+  `esphome/core`) and follows ESPHome's component conventions.
+
+* Copyright (c) 2026 youkorr (https://github.com/youkorr) — original author of
+  the `esp_video_camera` component, submitted to ESPHome as pull request
+  https://github.com/esphome/esphome/pull/16944 ("[esp_video_camera] Add
+  ESP32-P4 esp_video (V4L2) camera platform"), which is itself a port of
+  https://github.com/youkorr/esphome_esp-video. That pull request has not been
+  merged into ESPHome. All files in `components/esp_video_camera/` originate
+  from it.
+
+* Copyright (c) 2026 Psix-anp (https://github.com/Psix-anp) — modifications
+  described in `CHANGELOG.md` and in the "Fixes on top of the original PR"
+  section of `README.md`. Changes are confined to `esp_video_camera.cpp` and
+  `esp_video_camera.h`; `__init__.py`, `i2c_helper.h` and `cfg/sc202cs.json` are
+  byte-identical to the pull request, apart from source comments in the C++
+  files that were translated to English for publication.
+
+  As required by GPLv3 §5(a): these files have been modified relative to the
+  original pull request. The modified C++ sources carry `// FORK:` comments at
+  every changed site, dated 2026-07-25.
+
+## Third-party components pulled at build time
+
+The component pulls Espressif sources through the ESP-IDF component manager at
+build time (`espressif/esp_video`, `esp_cam_sensor`, `esp_ipa`, `esp_sccb_intf`,
+`esp_h264`, optionally `usb_host_uvc`). None of them are vendored here; they
+carry their own licenses and are fetched from https://components.espressif.com/.
+As shipped in the versions this component pins (checked 2026-07): `esp_video`
+and `esp_ipa` are under the ESPRESSIF MIT License; `esp_cam_sensor`,
+`esp_sccb_intf`, `esp_h264` and `usb_host_uvc` are under Apache-2.0.
+
+The original pull request also had `cfg/sc202cs.json`, an IPA (image tuning)
+configuration file; this plugin no longer carries it (below).
+
+## In Tessera's screen_camera plugin
+
+This folder is the component as published at github.com/n-IA-hane/esphome-esp-video-camera, release v2026.9.2
+(commit 6d247d7), copied without changes. The plugin's own code is in `components/screen_camera/`.
+
+## OV02C10 addition in the jc8012_camera plugin
+
+The files `ov02c10_sensor.c`, `ov02c10.h`, `ov02c10_compat.h`,
+`ov02c10_regs.h`, `ov02c10_settings.h`, and `ov02c10_types.h` were copied
+from https://github.com/sullb/esphome-p4-csi-camera (MIT License) on 2026-10-18.
+That project identifies the register tables as based on the Linux OV02C10
+driver; the driver structure follows Espressif's esp_cam_sensor drivers
+(Apache-2.0, see the SPDX headers). The complete plugin is distributed under
+GPL-3.0-only; upstream copyright and license notices remain applicable to these
+files.
+
+As required by GPLv3 §5(a): `ov02c10_sensor.c` was modified on 2026-10-19
+(exposure, gain and orientation on the OV02C10's own registers, as the Linux
+driver drivers/media/i2c/ov02c10.c sets them; OV5640 registers removed; the chip
+id is checked). Its header comment lists the changes. `esp_video_camera.cpp`
+calls `ov02c10_sensor_link_anchor()` and `__init__.py` adds the files below.
+
+`build_stubs/ov02c10_ipa/ov02c10.json` is an IPA (image tuning) configuration
+derived from Espressif's `sc2336_default_p4_eco4.json` (esp_cam_sensor,
+Apache-2.0) on 2026-10-19: the same blocks under the name OV02C10, with a wider
+white balance search range and a neutral saturation. Since 0.2.3 it also has
+the black level and the brightness-dependent gamma of Espressif's rev3
+tunings (`sc2336_default_p4_eco5.json`, `os02n10_default_p4_eco5.json`), and
+its colour matrix is halfway between the SC2336 one and neutral. Since 0.2.4 its
+white balance scales red and blue (1.15, 1.3), as the rev3 SC2336 tuning does
+(1.1, 1.1).
+
+Since 0.2.5 `__init__.py` takes `jpeg_quality` as esp_video does (1 to 100,
+higher is better, default 80) instead of 1 to 63 (default 10); the default in
+`esp_video_camera.h` follows. The `CMakeLists.txt` and
+`project_include.cmake` beside it are this plugin's own.
+
+The earlier `cfg/sc202cs.json` was removed: no sensor of this board uses it.
+
+Local change: esp_video is taken from the Espressif git master (commit 3bb32ee9ee42b35cfbfeb64ecbc38a7a2222dd71, path esp_video),
+which contains the CSI fix for ESP32-P4 silicon revisions < 3.
