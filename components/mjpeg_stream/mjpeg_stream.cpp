@@ -14,21 +14,28 @@
 #ifdef USE_LVGL
 #include "esphome/components/lvgl/lvgl_proxy.h"
 #endif
+#include "esp_timer.h"
+#if __has_include("esphome/components/mipi_dsi/mipi_dsi.h")
+#include "esphome/components/mipi_dsi/mipi_dsi.h"
+#include "esp_lcd_mipi_dsi.h"
+#define MJPEG_HAVE_DSI 1
+#endif
 
 namespace esphome::mjpeg_stream {
 
 static const char *const TAG = "mjpeg_stream";
 
-// діагностика: скільки внутрішньої пам'яті лишилось після глобальних конструкторів (перед стартом задач)
-__attribute__((constructor(65535))) static void heap_probe_late() {
-  ESP_EARLY_LOGW("heapprobe", "late ctor: internal free %u, largest %u, dma free %u",
-                 (unsigned) heap_caps_get_free_size(MALLOC_CAP_INTERNAL),
-                 (unsigned) heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL),
-                 (unsigned) heap_caps_get_free_size(MALLOC_CAP_DMA | MALLOC_CAP_INTERNAL));
-}
-__attribute__((constructor(101))) static void heap_probe_early() {
-  ESP_EARLY_LOGW("heapprobe", "early ctor: internal free %u", (unsigned) heap_caps_get_free_size(MALLOC_CAP_INTERNAL));
-}
+#ifdef MJPEG_HAVE_DSI
+// handle_ панелі в MipiDsi захищений, а клас final: явна інстанціація шаблону ігнорує права доступу
+namespace {
+template<typename Tag, typename Tag::type M> struct DsiRob { friend typename Tag::type dsi_get(Tag) { return M; } };
+struct DsiHandleTag {
+  typedef esp_lcd_panel_handle_t mipi_dsi::MipiDsi::*type;
+  friend type dsi_get(DsiHandleTag);
+};
+template struct DsiRob<DsiHandleTag, &mipi_dsi::MipiDsi::handle_>;
+}  // namespace
+#endif
 
 MjpegStream::MjpegStream(int width, int height)
     : image::Image(nullptr, width, height, image::IMAGE_TYPE_RGB565, image::TRANSPARENCY_OPAQUE) {
@@ -78,6 +85,7 @@ void MjpegStream::setup() {
   if (this->disp_ != nullptr) {
     ppa_client_config_t pc = {};
     pc.oper_type = PPA_OPERATION_SRM;
+    pc.max_pending_trans_num = 32;  // блоки кадру ставляться в чергу PPA без очікування
     if (ppa_register_client(&pc, &this->ppa_) != ESP_OK) {
       ESP_LOGE(TAG, "PPA недоступний — пряме виведення вимкнено");
       this->ppa_ = nullptr;
@@ -149,28 +157,146 @@ static void lv_redraw_cb(lv_event_t *e) {
 }
 #endif
 
+bool MjpegStream::excl_active_(const Rect &r) const {
+#ifdef USE_LVGL
+  if (r.owner != nullptr && lv_obj_has_flag((lv_obj_t *) r.owner, LV_OBJ_FLAG_HIDDEN)) return false;
+#endif
+  return true;
+}
+
+// кути кольором фону (як у карток інтерфейсу). front_ записав DMA декодера: спершу скидаємо можливі застарілі
+// рядки кешу (M2C), пишемо кути й повертаємо в пам'ять лише ці рядки (C2M), а не весь кадр
+void MjpegStream::round_corners_() {
+  const int w = this->width_, h = this->height_, r = this->radius_;
+  if (r <= 0) return;
+  uint16_t *px = (uint16_t *) this->front_;
+  const size_t rowb = (size_t) w * 2;
+  auto span_sync = [&](int y0, int rows, int dir) {
+    uintptr_t a0 = (uintptr_t) (this->front_ + (size_t) y0 * rowb) & ~(uintptr_t) 63;
+    uintptr_t a1 = ((uintptr_t) (this->front_ + (size_t) (y0 + rows) * rowb) + 63) & ~(uintptr_t) 63;
+    uintptr_t lo = (uintptr_t) this->front_ & ~(uintptr_t) 63;
+    uintptr_t hi = ((uintptr_t) this->front_ + this->out_alloc_) & ~(uintptr_t) 63;
+    a0 = std::max(a0, lo);
+    a1 = std::min(a1, hi);
+    if (a1 > a0) esp_cache_msync((void *) a0, a1 - a0, dir);
+  };
+  span_sync(0, r, ESP_CACHE_MSYNC_FLAG_DIR_M2C);
+  span_sync(h - r, r, ESP_CACHE_MSYNC_FLAG_DIR_M2C);
+  for (int yy = 0; yy < r; yy++) {
+    for (int xx = 0; xx < r; xx++) {
+      float fx = r - xx - 0.5f, fy = r - yy - 0.5f;
+      if (fx * fx + fy * fy <= (float) (r * r)) continue;
+      px[yy * w + xx] = this->bg565_;
+      px[yy * w + (w - 1 - xx)] = this->bg565_;
+      px[(h - 1 - yy) * w + xx] = this->bg565_;
+      px[(h - 1 - yy) * w + (w - 1 - xx)] = this->bg565_;
+    }
+  }
+  span_sync(0, r, ESP_CACHE_MSYNC_FLAG_DIR_C2M);
+  span_sync(h - r, r, ESP_CACHE_MSYNC_FLAG_DIR_C2M);
+}
+
 void MjpegStream::blit_() {
   if (this->disp_ == nullptr || this->ppa_ == nullptr || this->front_ == nullptr)
     return;
+  const int64_t t0 = esp_timer_get_time();
+#ifdef MJPEG_HAVE_DSI
+  if (!this->fb_tried_) {
+    this->fb_tried_ = true;
+    auto *dsi = static_cast<mipi_dsi::MipiDsi *>(this->disp_);
+    esp_lcd_panel_handle_t hdl = dsi->*dsi_get(DsiHandleTag());
+    void *fb = nullptr;
+    if (hdl != nullptr && esp_lcd_dpi_panel_get_frame_buffer(hdl, 1, &fb) == ESP_OK && fb != nullptr) {
+      this->fb_ = (uint8_t *) fb;
+      this->fb_w_ = this->disp_->get_native_width();
+      this->fb_h_ = this->disp_->get_native_height();
+      this->fb_size_ = (size_t) this->fb_w_ * this->fb_h_ * 2;
+      ESP_LOGI(TAG, "Пряме виведення: PPA у кадровий буфер %dx%d", this->fb_w_, this->fb_h_);
+    } else {
+      ESP_LOGW(TAG, "Кадровий буфер недоступний — виведення через draw_pixels_at");
+    }
+  }
+#endif
+  this->round_corners_();
+  if (this->fast_ && this->fb_ != nullptr) this->blit_fb_();
+  else this->blit_copy_();
+  this->have_frame_ = true;
+  this->blit_us_ += (uint32_t) (esp_timer_get_time() - t0);
+  this->blit_n_++;
+}
+
+// видима частина стовпця x відео — [top, bot) (виключення лише біля верхнього/нижнього краю)
+#define MJPEG_SPAN(X, TOP, BOT)                                                \
+  do {                                                                         \
+    TOP = 0;                                                                   \
+    BOT = h;                                                                   \
+    for (auto &r : this->excl_) {                                              \
+      if ((X) < r.x || (X) >= r.x + r.w || !this->excl_active_(r)) continue;   \
+      if (r.y == 0) TOP = std::max(TOP, r.h);                                  \
+      else BOT = std::min(BOT, r.y);                                           \
+    }                                                                          \
+  } while (0)
+
+// Швидкий шлях: кожен блок стовпців однакової висоти повертається PPA одразу в кадровий буфер дисплея.
+// Логічна точка відео (x, y) -> фізична (стовпець phys_x + h-1-y, рядок phys_y + x), як при LVGL rotation: 90.
+void MjpegStream::blit_fb_() {
   const int w = this->width_, h = this->height_;
-  uint16_t *px = (uint16_t *) this->front_;
-  if (this->radius_ > 0) {
-    // кути кольором фону (як у карток інтерфейсу)
-    const int r = this->radius_;
-    for (int yy = 0; yy < r; yy++) {
-      for (int xx = 0; xx < r; xx++) {
-        float fx = r - xx - 0.5f, fy = r - yy - 0.5f;
-        if (fx * fx + fy * fy <= (float) (r * r))
-          continue;
-        px[yy * w + xx] = this->bg565_;
-        px[yy * w + (w - 1 - xx)] = this->bg565_;
-        px[(h - 1 - yy) * w + xx] = this->bg565_;
-        px[(h - 1 - yy) * w + (w - 1 - xx)] = this->bg565_;
+  const int phys_x = this->fb_w_ - this->dy_ - h;
+  const int phys_y = this->dx_;
+  if (phys_x < 0 || phys_y < 0 || phys_x + h > this->fb_w_ || phys_y + w > this->fb_h_) return;
+  int x = 0;
+  while (x < w) {
+    int top, bot;
+    MJPEG_SPAN(x, top, bot);
+    int x2 = x + 1;
+    while (x2 < w) {
+      int t2, b2;
+      MJPEG_SPAN(x2, t2, b2);
+      if (t2 != top || b2 != bot) break;
+      x2++;
+    }
+    const int cols = x2 - x, seg = bot - top;
+    if (seg > 0) {
+      ppa_srm_oper_config_t c = {};
+      c.in.buffer = this->front_;
+      c.in.pic_w = w;
+      c.in.pic_h = h;
+      c.in.block_w = cols;
+      c.in.block_h = seg;
+      c.in.block_offset_x = x;
+      c.in.block_offset_y = top;
+      c.in.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
+      c.out.buffer = this->fb_;
+      c.out.buffer_size = this->fb_size_;
+      c.out.pic_w = this->fb_w_;
+      c.out.pic_h = this->fb_h_;
+      c.out.block_offset_x = phys_x + h - bot;
+      c.out.block_offset_y = phys_y + x;
+      c.out.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
+      c.rotation_angle = PPA_SRM_ROTATION_ANGLE_270;
+      c.scale_x = 1.0f;
+      c.scale_y = 1.0f;
+      // без очікування: PPA сам допише блок у кадровий буфер, основний цикл іде далі.
+      // front_ не перезаписується, поки PPA його читає: наступний кадр декодується в інший буфер.
+      c.mode = PPA_TRANS_MODE_NON_BLOCKING;
+      esp_err_t e = ppa_do_scale_rotate_mirror(this->ppa_, &c);
+      if (e == ESP_ERR_INVALID_STATE) {
+        // черга повна (кадри приходять швидше, ніж PPA встигає) — цей блок пропускаємо
+        continue_skip_++;
+      } else if (e != ESP_OK) {
+        ESP_LOGW(TAG, "PPA: помилка виведення в кадровий буфер (%s) — повертаюсь до копіювання", esp_err_to_name(e));
+        this->fb_ = nullptr;
+        return;
       }
     }
-    esp_cache_msync(this->front_, (this->frame_bytes_ + 63) & ~((size_t) 63),
-                    ESP_CACHE_MSYNC_FLAG_DIR_C2M | ESP_CACHE_MSYNC_FLAG_UNALIGNED);
+    x = x2;
   }
+}
+
+// Старий шлях: поворот у проміжний буфер, далі draw_pixels_at смугами
+void MjpegStream::blit_copy_() {
+  if (this->rot_ == nullptr) return;
+  const int w = this->width_, h = this->height_;
   ppa_srm_oper_config_t c = {};
   c.in.buffer = this->front_;
   c.in.pic_w = w;
@@ -183,7 +309,7 @@ void MjpegStream::blit_() {
   c.out.pic_w = h;
   c.out.pic_h = w;
   c.out.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
-  c.rotation_angle = PPA_SRM_ROTATION_ANGLE_270;  // 270° проти год. стрілки = 90° за годинниковою (як LVGL)
+  c.rotation_angle = PPA_SRM_ROTATION_ANGLE_270;
   c.scale_x = 1.0f;
   c.scale_y = 1.0f;
   c.mode = PPA_TRANS_MODE_BLOCKING;
@@ -191,40 +317,22 @@ void MjpegStream::blit_() {
     ESP_LOGW(TAG, "PPA: помилка повороту");
     return;
   }
-  this->have_frame_ = true;
-  // логічні (альбомні) координати -> фізичні (портретна панель), як у LVGL при rotation: 90.
-  // Рядок повернутого буфера = стовпець x відео (довжина h), піксель рядка r відповідає y = h-1-r.
   const int phys_x = this->disp_->get_native_width() - this->dy_ - h;
   const int phys_y = this->dx_;
-  if (this->excl_.empty()) {
-    this->disp_->draw_pixels_at(phys_x, phys_y, h, w, this->rot_, display::COLOR_ORDER_RGB, display::COLOR_BITNESS_565,
-                                false);
-    return;
-  }
-  // для кожного стовпця x: видима частина відео — [top, bot) по y (виключення лише біля верхнього/нижнього краю)
-  auto span = [&](int x, int &top, int &bot) {
-    top = 0;
-    bot = h;
-    for (auto &r : this->excl_) {
-      if (x < r.x || x >= r.x + r.w) continue;
-      if (r.y == 0) top = std::max(top, r.h);
-      else bot = std::min(bot, r.y);
-    }
-  };
   int x = 0;
   while (x < w) {
     int top, bot;
-    span(x, top, bot);
+    MJPEG_SPAN(x, top, bot);
     int x2 = x + 1;
     while (x2 < w) {
       int t2, b2;
-      span(x2, t2, b2);
+      MJPEG_SPAN(x2, t2, b2);
       if (t2 != top || b2 != bot) break;
       x2++;
     }
     const int cols = x2 - x, seg = bot - top;
     if (seg > 0) {
-      const int r0 = h - bot;  // перший піксель у рядку повернутого буфера
+      const int r0 = h - bot;
       const uint16_t *src = (const uint16_t *) this->rot_ + (size_t) x * h;
       if (seg == h) {
         this->disp_->draw_pixels_at(phys_x, phys_y + x, h, cols, (const uint8_t *) src, display::COLOR_ORDER_RGB,
@@ -271,6 +379,7 @@ void MjpegStream::loop() {
 #ifdef USE_LVGL
       if (!this->excl_.empty() && (this->frames_ & 1) == 0 && lv_screen_active() != nullptr) {
         for (auto &r : this->excl_) {
+          if (!this->excl_active_(r)) continue;
           lv_area_t a = {(int32_t) (this->dx_ + r.x), (int32_t) (this->dy_ + r.y), (int32_t) (this->dx_ + r.x + r.w - 1),
                          (int32_t) (this->dy_ + r.y + r.h - 1)};
           lv_obj_invalidate_area(lv_screen_active(), &a);
@@ -284,7 +393,13 @@ void MjpegStream::loop() {
     uint32_t now = millis();
     if (now - this->fps_window_start_ >= 5000) {
       this->fps_ = this->frames_ * 1000.0f / (now - this->fps_window_start_);
-      ESP_LOGD(TAG, "%.1f кадр/с", this->fps_);
+      ESP_LOGI(TAG, "%.1f кадр/с, виведення %.2f мс/кадр (%s)", this->fps_,
+               this->blit_n_ ? this->blit_us_ / 1000.0f / this->blit_n_ : 0.0f,
+               (this->fast_ && this->fb_ != nullptr) ? "PPA у кадровий буфер" : "копіювання");
+      if (this->continue_skip_) ESP_LOGW(TAG, "PPA: пропущено блоків (черга повна): %u", (unsigned) this->continue_skip_);
+      this->continue_skip_ = 0;
+      this->blit_us_ = 0;
+      this->blit_n_ = 0;
       this->frames_ = 0;
       this->fps_window_start_ = now;
     }

@@ -40,10 +40,15 @@ class MjpegStream : public Component, public image::Image {
   void set_direct_enabled(bool e) { this->direct_on_ = e; }
   // прямокутник (відносно відео), який не перемальовується — там віджети LVGL поверх відео.
   // Має торкатися верхнього (y == 0) або нижнього (y + h == висота) краю відео.
-  void add_exclude(int x, int y, int w, int h) { this->excl_.push_back({x, y, w, h}); }
+  void add_exclude(int x, int y, int w, int h) { this->excl_.push_back({x, y, w, h, nullptr}); }
+  // зона діє лише поки віджет-власник видимий (прихована плитка — відео малюється й там, без перемальовки LVGL)
+  void set_exclude_owner(size_t i, void *lv_obj) { if (i < this->excl_.size()) this->excl_[i].owner = lv_obj; }
+  // true — поворот PPA одразу в кадровий буфер дисплея; false — старий шлях (буфер повороту + draw_pixels_at)
+  void set_fast(bool f) { this->fast_ = f; }
   void blit_now() { this->blit_(); }
   bool inside_exclude(int x1, int y1, int x2, int y2) const {
     for (auto &r : this->excl_) {
+      if (!this->excl_active_(r)) continue;
       int ex = this->dx_ + r.x, ey = this->dy_ + r.y;
       if (x1 >= ex && y1 >= ey && x2 <= ex + r.w - 1 && y2 <= ey + r.h - 1) return true;
     }
@@ -82,8 +87,18 @@ class MjpegStream : public Component, public image::Image {
   ppa_client_handle_t ppa_{nullptr};
   uint8_t *rot_{nullptr};
   uint8_t *tmp_{nullptr};
-  struct Rect { int x, y, w, h; };
+  struct Rect { int x, y, w, h; void *owner; };
   std::vector<Rect> excl_;
+  bool excl_active_(const Rect &r) const;
+  void blit_fb_();     // швидкий шлях: PPA -> кадровий буфер
+  void blit_copy_();   // старий шлях
+  void round_corners_();
+  bool fast_{true};
+  bool fb_tried_{false};
+  uint8_t *fb_{nullptr};
+  int fb_w_{0}, fb_h_{0};
+  size_t fb_size_{0};
+  uint32_t blit_us_{0}, blit_n_{0}, continue_skip_{0};
   bool have_frame_{false};
   bool hooked_{false};
   size_t rot_size_{0};
