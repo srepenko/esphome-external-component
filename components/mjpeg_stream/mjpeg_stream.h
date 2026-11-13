@@ -45,6 +45,8 @@ class MjpegStream : public Component, public image::Image {
   void set_exclude_owner(size_t i, void *lv_obj) { if (i < this->excl_.size()) this->excl_[i].owner = lv_obj; }
   // true — поворот PPA одразу в кадровий буфер дисплея; false — старий шлях (буфер повороту + draw_pixels_at)
   void set_fast(bool f) { this->fast_ = f; }
+  // як часто LVGL перемальовує відео під віджетами в зонах-виключеннях: кожен N-й кадр (0 — ніколи)
+  void set_excl_every(int n) { this->excl_every_ = n < 0 ? 0 : n; }
   void blit_now() { this->blit_(); }
   bool inside_exclude(int x1, int y1, int x2, int y2) const {
     for (auto &r : this->excl_) {
@@ -94,6 +96,7 @@ class MjpegStream : public Component, public image::Image {
   void blit_copy_();   // старий шлях
   void round_corners_();
   bool fast_{true};
+  int excl_every_{2};
   bool fb_tried_{false};
   uint8_t *fb_{nullptr};
   int fb_w_{0}, fb_h_{0};

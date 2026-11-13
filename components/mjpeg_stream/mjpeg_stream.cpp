@@ -138,6 +138,34 @@ static bool g_hook = false;
 static void lv_redraw_cb(lv_event_t *e) {
   static bool dirty[8] = {};
   lv_event_code_t code = lv_event_get_code(e);
+  // замір: скільки часу LVGL витрачає на перемальовку екрана
+  static int64_t r0 = 0, racc = 0;
+  static uint32_t rn = 0, rlog = 0;
+  static uint32_t inv_n = 0, inv_max = 0;
+  static uint64_t inv_px = 0;
+  static lv_area_t inv_big = {};
+  if (code == LV_EVENT_INVALIDATE_AREA) {
+    const lv_area_t *ia = (const lv_area_t *) lv_event_get_param(e);
+    if (ia != nullptr) {
+      uint32_t px = (uint32_t) lv_area_get_width(ia) * lv_area_get_height(ia);
+      inv_n++; inv_px += px;
+      if (px > inv_max) { inv_max = px; inv_big = *ia; }
+    }
+  }
+  if (code == LV_EVENT_REFR_START) { r0 = esp_timer_get_time(); return; }
+  if (code == LV_EVENT_REFR_READY && r0) {
+    racc += esp_timer_get_time() - r0; rn++; r0 = 0;
+    uint32_t now = millis();
+    if (now - rlog >= 5000) {
+      ESP_LOGD(TAG, "LVGL: %u перемальовок за 5 с, %.2f мс у середньому, %.0f мс/с усього", (unsigned) rn,
+               rn ? racc / 1000.0f / rn : 0.0f, racc / 1000.0f / ((now - rlog) / 1000.0f));
+      ESP_LOGD(TAG, "LVGL: інвалідацій %u, %llu тис. пікс., найбільша %ux%u @%d,%d", (unsigned) inv_n,
+               (unsigned long long) (inv_px / 1000), (unsigned) lv_area_get_width(&inv_big),
+               (unsigned) lv_area_get_height(&inv_big), (int) inv_big.x1, (int) inv_big.y1);
+      inv_n = 0; inv_px = 0; inv_max = 0;
+      racc = 0; rn = 0; rlog = now;
+    }
+  }
   if (code == LV_EVENT_INVALIDATE_AREA) {
     const lv_area_t *a = (const lv_area_t *) lv_event_get_param(e);
     if (a == nullptr) return;
@@ -377,7 +405,7 @@ void MjpegStream::loop() {
     if (this->direct_on_ && this->running_.load()) {
       this->blit_();
 #ifdef USE_LVGL
-      if (!this->excl_.empty() && (this->frames_ & 1) == 0 && lv_screen_active() != nullptr) {
+      if (!this->excl_.empty() && this->excl_every_ > 0 && (this->frames_ % this->excl_every_) == 0 && lv_screen_active() != nullptr) {
         for (auto &r : this->excl_) {
           if (!this->excl_active_(r)) continue;
           lv_area_t a = {(int32_t) (this->dx_ + r.x), (int32_t) (this->dy_ + r.y), (int32_t) (this->dx_ + r.x + r.w - 1),
@@ -393,7 +421,7 @@ void MjpegStream::loop() {
     uint32_t now = millis();
     if (now - this->fps_window_start_ >= 5000) {
       this->fps_ = this->frames_ * 1000.0f / (now - this->fps_window_start_);
-      ESP_LOGI(TAG, "%.1f кадр/с, виведення %.2f мс/кадр (%s)", this->fps_,
+      ESP_LOGD(TAG, "%.1f кадр/с, виведення %.2f мс/кадр (%s)", this->fps_,
                this->blit_n_ ? this->blit_us_ / 1000.0f / this->blit_n_ : 0.0f,
                (this->fast_ && this->fb_ != nullptr) ? "PPA у кадровий буфер" : "копіювання");
       if (this->continue_skip_) ESP_LOGW(TAG, "PPA: пропущено блоків (черга повна): %u", (unsigned) this->continue_skip_);
