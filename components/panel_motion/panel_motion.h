@@ -31,6 +31,8 @@ class PanelMotion : public Component,
                      public camera::CameraListener,
                      public esp_video_camera::RawVideoFrameConsumer {
  public:
+  // скільки клітинок сітки (з 32x18) має змінитися, щоб це був рух поруч з панеллю; далекий рух дрібніший
+  void set_min_cells(int n) { this->min_cells_ = n < 1 ? 1 : n; }
   void setup() override;
   void loop() override;
   float get_setup_priority() const override { return setup_priority::LATE; }
@@ -79,6 +81,7 @@ class PanelMotion : public Component,
     return static_cast<esp_video_camera::ESPVideoCamera *>(camera_);
   }
 
+  int min_cells_{18};
   camera::Camera *camera_{};
 #ifdef USE_TEXT_SENSOR
   text_sensor::TextSensor *status_{};

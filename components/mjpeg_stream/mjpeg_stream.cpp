@@ -172,7 +172,7 @@ static void lv_redraw_cb(lv_event_t *e) {
     for (size_t i = 0; i < g_direct.size() && i < 8; i++) {
       auto *s = g_direct[i];
       if (!s->direct_active()) continue;
-      int x1 = s->get_dx(), y1 = s->get_dy(), x2 = x1 + s->get_width() - 1, y2 = y1 + s->get_height() - 1;
+      int x1 = s->get_dx(), y1 = s->get_dy(), x2 = x1 + s->out_w() - 1, y2 = y1 + s->out_h() - 1;
       if (a->x2 >= x1 && a->x1 <= x2 && a->y2 >= y1 && a->y1 <= y2 && !s->inside_exclude(a->x1, a->y1, a->x2, a->y2))
         dirty[i] = true;
     }
@@ -186,6 +186,7 @@ static void lv_redraw_cb(lv_event_t *e) {
 #endif
 
 bool MjpegStream::excl_active_(const Rect &r) const {
+  if (!this->use_excl_ || this->scaled()) return false;
 #ifdef USE_LVGL
   if (r.owner != nullptr && lv_obj_has_flag((lv_obj_t *) r.owner, LV_OBJ_FLAG_HIDDEN)) return false;
 #endif
@@ -269,6 +270,33 @@ void MjpegStream::blit_() {
 // Логічна точка відео (x, y) -> фізична (стовпець phys_x + h-1-y, рядок phys_y + x), як при LVGL rotation: 90.
 void MjpegStream::blit_fb_() {
   const int w = this->width_, h = this->height_;
+  if (this->scaled()) {
+    const int ow = this->out_h(), oh = this->out_w();  // після повороту: ширина фізична = висота відео * sy
+    const int px = this->fb_w_ - this->dy_ - ow, py = this->dx_;
+    if (px < 0 || py < 0 || px + ow > this->fb_w_ || py + oh > this->fb_h_) return;
+    ppa_srm_oper_config_t c = {};
+    c.in.buffer = this->front_;
+    c.in.pic_w = w;
+    c.in.pic_h = h;
+    c.in.block_w = w;
+    c.in.block_h = h;
+    c.in.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
+    c.out.buffer = this->fb_;
+    c.out.buffer_size = this->fb_size_;
+    c.out.pic_w = this->fb_w_;
+    c.out.pic_h = this->fb_h_;
+    c.out.block_offset_x = px;
+    c.out.block_offset_y = py;
+    c.out.srm_cm = PPA_SRM_COLOR_MODE_RGB565;
+    c.rotation_angle = PPA_SRM_ROTATION_ANGLE_270;
+    c.scale_x = this->sx_;
+    c.scale_y = this->sy_;
+    c.mode = PPA_TRANS_MODE_NON_BLOCKING;
+    esp_err_t e = ppa_do_scale_rotate_mirror(this->ppa_, &c);
+    if (e == ESP_ERR_INVALID_STATE) this->continue_skip_++;
+    else if (e != ESP_OK) ESP_LOGW(TAG, "PPA: помилка масштабування (%s)", esp_err_to_name(e));
+    return;
+  }
   const int phys_x = this->fb_w_ - this->dy_ - h;
   const int phys_y = this->dx_;
   if (phys_x < 0 || phys_y < 0 || phys_x + h > this->fb_w_ || phys_y + w > this->fb_h_) return;
@@ -323,7 +351,7 @@ void MjpegStream::blit_fb_() {
 
 // Старий шлях: поворот у проміжний буфер, далі draw_pixels_at смугами
 void MjpegStream::blit_copy_() {
-  if (this->rot_ == nullptr) return;
+  if (this->rot_ == nullptr || this->scaled()) return;
   const int w = this->width_, h = this->height_;
   ppa_srm_oper_config_t c = {};
   c.in.buffer = this->front_;

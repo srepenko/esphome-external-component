@@ -38,6 +38,13 @@ class MjpegStream : public Component, public image::Image {
     this->disp_ = d; this->dx_ = x; this->dy_ = y; this->radius_ = radius; this->bg565_ = bg565;
   }
   void set_direct_enabled(bool e) { this->direct_on_ = e; }
+  // Де й як показувати потік (логічні координати, масштаб PPA з кроком 1/16). use_excl — враховувати зони-виключення
+  // (лише без масштабу). Дозволяє показати той самий «теплий» потік на головній, у сітці чи на весь екран миттєво.
+  void set_view(int x, int y, float sx, float sy, int radius, bool use_excl) {
+    this->dx_ = x; this->dy_ = y; this->sx_ = sx; this->sy_ = sy; this->radius_ = radius; this->use_excl_ = use_excl;
+  }
+  int out_w() const { return (int) (this->width_ * this->sx_ + 0.5f); }
+  int out_h() const { return (int) (this->height_ * this->sy_ + 0.5f); }
   // прямокутник (відносно відео), який не перемальовується — там віджети LVGL поверх відео.
   // Має торкатися верхнього (y == 0) або нижнього (y + h == висота) краю відео.
   void add_exclude(int x, int y, int w, int h) { this->excl_.push_back({x, y, w, h, nullptr}); }
@@ -58,6 +65,7 @@ class MjpegStream : public Component, public image::Image {
   }
   bool direct_active() const { return this->disp_ != nullptr && this->direct_on_ && this->running_.load(); }
   int get_dx() const { return this->dx_; }
+  bool scaled() const { return this->sx_ != 1.0f || this->sy_ != 1.0f; }
   int get_dy() const { return this->dy_; }
 
   void setup() override;
@@ -96,6 +104,8 @@ class MjpegStream : public Component, public image::Image {
   void blit_copy_();   // старий шлях
   void round_corners_();
   bool fast_{true};
+  float sx_{1.0f}, sy_{1.0f};
+  bool use_excl_{true};
   int excl_every_{2};
   bool fb_tried_{false};
   uint8_t *fb_{nullptr};

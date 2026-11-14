@@ -170,19 +170,30 @@ void PanelMotion::consume_raw_video_frame(const esp_video_camera::RawVideoFrame 
       if (d < -threshold) darker++;
     }
     shift /= GRID_W * GRID_H;
-    int changed = 0;
+    int changed = 0, bx0 = GRID_W, by0 = GRID_H, bx1 = -1, by1 = -1;
     for (int i = 0; i < GRID_W * GRID_H; i++) {
-      if (std::abs(grid[i] - grid_old_[i] - shift) > threshold) changed++;
+      if (std::abs(grid[i] - grid_old_[i] - shift) > threshold) {
+        changed++;
+        const int cx = i % GRID_W, cy = i / GRID_W;
+        bx0 = std::min(bx0, cx); bx1 = std::max(bx1, cx); by0 = std::min(by0, cy); by1 = std::max(by1, cy);
+      }
     }
     if (brighter >= LIGHT_CHANGE_CELLS || darker >= LIGHT_CHANGE_CELLS) {
       settle_until_ms_ = now + SETTLE_MS;
     } else {
       // поріг за освітленістю: у темряві (велике підсилення) людина змінює кадр слабше
-      const int need = gain_x16 > 128 ? MOTION_CELLS - 1 : MOTION_CELLS + 2;
+      // поріг розміру руху (налаштовується з HA): людина біля панелі займає велику частину кадру
+      const int need = this->min_cells_;
       static int streak = 0;
       if (changed >= need) {
         // рух рахуємо лише якщо він є на двох вибірках поспіль — відсікає шум і поодинокі мерехтіння
-        if (++streak >= 2) last_motion_ms_.store(now == 0 ? 1 : now);
+        // рух рахуємо лише якщо він є на трьох вибірках поспіль (~1.5 с) — відсікає шум, відблиски й мерехтіння
+        if (++streak >= 3) {
+          if (streak == 3)
+            ESP_LOGI(TAG, "MOTION: cells %d (need %d), area x%d-%d y%d-%d of %dx%d, shift %d, gain_x16 %u", changed, need,
+                     bx0, bx1, by0, by1, GRID_W, GRID_H, shift, (unsigned) gain_x16);
+          last_motion_ms_.store(now == 0 ? 1 : now);
+        }
       } else {
         streak = 0;
       }
